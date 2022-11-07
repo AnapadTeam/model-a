@@ -1,0 +1,83 @@
+import java.lang.reflect.Field
+
+plugins {
+    id "java"
+    id "application"
+
+    // For JavaFX
+    id "org.openjfx.javafxplugin" version "0.0.13"
+}
+
+group "tech.anapad"
+version "1.0"
+
+repositories {
+    mavenCentral()
+}
+
+//
+// START build configuration
+//
+
+dependencies {
+    // Logback logger implementation
+    implementation group: "ch.qos.logback", name: "logback-classic", version: "1.4.4"
+    // For redirecting stdout and stderr to SLF4j
+    implementation group: "uk.org.lidalia", name: "sysout-over-slf4j", version: "1.0.2"
+
+    // For parsing CLI parameters
+    implementation group: 'com.beust', name: 'jcommander', version: '1.82'
+}
+
+sourceCompatibility = JavaVersion.VERSION_14
+targetCompatibility = JavaVersion.VERSION_14
+[compileJava, compileTestJava]*.options*.encoding = "UTF-8"
+
+application {
+    mainClass = "tech.anapad.modela.Launcher"
+    mainModule = "ModelA"
+}
+
+applicationName = "modela"
+applicationDefaultJvmArgs = ["-XX:InitialRAMPercentage=10.0", "-XX:MaxRAMPercentage=95.0",
+                             "-Dprism.verbose=true",
+                             "-Dembedded=monocle", "-Dglass.platform=Monocle", "-Dmonocle.platform=EGL",
+                             "-Dmonocle.egl.lib=/opt/java/libgluon_drm-1.1.7.so"]
+
+distTar.enabled = false
+distZip.enabled = false
+build {
+    dependsOn installDist // Creates shell scripts to run built jars
+}
+
+//
+// END build configuration
+//
+
+//
+// START JavaFX configuration
+//
+
+// The following code uses Reflection to force the OpenJFX Gradle plugin to use Linux aarch64 Monocle platform.
+// This is necessary because the Raspberry Pi OS Lite does not have an X11 windowing manager so JavaFX Monocle will
+// use Linux KMS/DRM to drive to the display.
+final Class<?> javaFXPlatformEnum = Class.forName("org.openjfx.gradle.JavaFXPlatform")
+final Object[] enumConstants = javaFXPlatformEnum.getEnumConstants()
+for (Object enumConstant : enumConstants) {
+    try {
+        final Field field = enumConstant.class.getDeclaredField("classifier")
+        field.setAccessible(true)
+        field.set(enumConstant, "linux-aarch64-monocle")
+    } catch (NoSuchFieldException exception) {
+        exception.printStackTrace()
+    }
+}
+
+javafx {
+    version = "19"
+    modules = ["javafx.base", "javafx.graphics", "javafx.controls"]
+}
+
+//
+// END JavaFX configuration
+//

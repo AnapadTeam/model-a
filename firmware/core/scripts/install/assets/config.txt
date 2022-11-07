@@ -1,0 +1,39 @@
+# I2C configuration
+dtparam=i2c_arm=on
+dtparam=i2c_baudrate=400000
+dtparam=i2c1=on # SCL: GPIO3, SDA: GPIO2
+dtoverlay=i2c4,pins_6_7,baudrate=400000 # SCL: GPIO7, SDA: GPIO6
+dtoverlay=i2c5,pins_10_11,baudrate=400000 # SCL: GPIO11, SDA: GPIO10
+
+# UART configuration
+enable_uart=1
+
+# Display configuration
+dtoverlay=vc4-fkms-v3d
+framebuffer_depth=32
+framebuffer_ignore_alpha=1
+max_framebuffers=2
+hdmi_cvt=1920 515 60 3 0 0 0 # N42 display is 1920x515@60Hz
+hdmi_group=2
+hdmi_mode=87
+hdmi_force_hotplug=1
+
+# Run in 64-bit mode
+arm_64bit=1
+
+# Increase GPU memory
+gpu_mem=256
+
+# Overclock SD card from 50MHz to 100MHz
+dtoverlay=sdtweak,overclock_50=100
+
+# Disable onboard EEPROM probing
+force_eeprom_read=0
+
+# Enable USB device mode
+dtoverlay=dwc2
+
+# Configurations to speed up boot
+disable_splash=1
+dtoverlay=disable-bt
+boot_delay=0

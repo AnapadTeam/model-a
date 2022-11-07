@@ -1,0 +1,1 @@
+The scripts in this directory are strictly meant to be run on a [Raspberry Pi Compute Module 4 (CM4)](https://www.raspberrypi.com/products/compute-module-4/) running [Raspberry Pi OS Lite 64-bit](https://www.raspberrypi.com/software/operating-systems/#raspberry-pi-os-64-bit).

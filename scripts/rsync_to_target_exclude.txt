@@ -1,0 +1,5 @@
+core/build/
+core/.idea/
+core/.gradle/
+native/build/
+native/cmake-build-debug
