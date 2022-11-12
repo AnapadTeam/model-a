@@ -15,12 +15,17 @@ fi
 
 PROJECT_ROOT="$(dirname "$0")/../../../"
 cd "${PROJECT_ROOT}"
+chown -R root:root .
 
 echo "Upgrading packages..."
 apt update
 apt upgrade -y
 apt autoremove --purge -y
 echo "Upgraded packages."
+
+echo "Installing build tools..."
+apt install cmake
+echo "Installed build tools."
 
 echo "Installing hardware-accelerated rendering libraries used by JavaFX..."
 apt install libegl-mesa0 libegl1 libgbm1 libgles2 libpangoft2-1.0-0 -y

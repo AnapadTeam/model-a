@@ -8,4 +8,4 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
-rsync -alPvz --delete --exclude-from="rsync_to_target_exclude.txt" firmware "root@${2}:~"
+rsync -alPvz --delete --exclude-from="scripts/sync_target_exclude.txt" firmware "root@${1}:~/"
