@@ -3,38 +3,41 @@ package tech.anapad.modela;
 import com.beust.jcommander.ParameterException;
 
 import static ch.qos.logback.classic.ClassicConstants.CONFIG_FILE_PROPERTY;
+import static java.lang.System.setProperty;
+import static javafx.application.Application.launch;
 import static uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J.sendSystemOutAndErrToSLF4J;
 
 /**
- * {@link Launcher} applies configurations and launches the application.
+ * {@link Launcher} launches the application.
  */
-public final class Launcher {
+public class Launcher {
 
     /**
      * The entry point of application.
      *
-     * @param cliArguments the CLI arguments
+     * @param cliArguments the input arguments
      */
     public static void main(String[] cliArguments) {
-        final LauncherArguments arguments = parseArguments(cliArguments);
+        final Arguments arguments = parseArguments(cliArguments);
         if (arguments == null) {
             return;
         }
         configureLogging(arguments);
-        // TODO
+        ModelA.arguments = arguments;
+        launch(ModelA.class, cliArguments);
     }
 
     /**
-     * Parses the given <code>cliArguments</code> into {@link LauncherArguments}.
+     * Parses the given <code>cliArguments</code> into {@link Arguments}.
      *
      * @param cliArguments the CLI arguments
      *
-     * @return the {@link LauncherArguments} or <code>null</code> if parsing failed and program execution should stop
+     * @return the {@link Arguments} or <code>null</code> if parsing failed and program execution should stop
      */
-    private static LauncherArguments parseArguments(String[] cliArguments) {
-        final LauncherArguments launcherArguments = new LauncherArguments(cliArguments);
+    private static Arguments parseArguments(String[] cliArguments) {
+        final Arguments arguments = new Arguments(cliArguments);
         try {
-            launcherArguments.parse();
+            arguments.parse();
         } catch (ParameterException exception) {
             exception.usage();
             return null;
@@ -46,25 +49,26 @@ public final class Launcher {
             return null;
         }
 
-        if (launcherArguments.printHelp()) {
-            launcherArguments.getJCommander().usage();
+        if (arguments.printHelp()) {
+            arguments.getJCommander().usage();
             return null;
         } else {
-            return launcherArguments;
+            return arguments;
         }
     }
 
     /**
      * Configures SLF4J/Logback logging.
      *
-     * @param arguments the {@link LauncherArguments}
+     * @param arguments the {@link Arguments}
      */
-    private static void configureLogging(LauncherArguments arguments) {
-        sendSystemOutAndErrToSLF4J();
+    private static void configureLogging(Arguments arguments) {
+        // TODO setProperty for Logback is not working
         if (arguments.runProduction()) {
-            System.setProperty(CONFIG_FILE_PROPERTY, "logback/logback.production.xml");
+            setProperty(CONFIG_FILE_PROPERTY, "logback/logback.production.xml");
         } else {
-            System.setProperty(CONFIG_FILE_PROPERTY, "logback/logback.development.xml");
+            setProperty(CONFIG_FILE_PROPERTY, "logback/logback.development.xml");
         }
+        sendSystemOutAndErrToSLF4J();
     }
 }

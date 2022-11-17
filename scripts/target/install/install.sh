@@ -40,16 +40,19 @@ jabba use liberica@1.14.0-2
 echo "Installed Java."
 
 echo "Building and installing native firmware..."
+cd "${PROJECT_ROOT}"
 cd native/
-mkdir -p build/
+rm -rf build/
+mkdir build/
 cmake -B build/ -S .
 make -C build/
 cp ./build/libmodela.so /lib/
-cd "${PROJECT_ROOT}"
 echo "Built and installed native firmware."
 
 echo "Building and installing core firmware..."
-cd core
+cd "${PROJECT_ROOT}"
+cd core/
+rm -rf build/
 ./gradlew build
 echo "Built and installed core firmware."
 

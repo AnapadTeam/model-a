@@ -1,36 +1,36 @@
-package tech.anapad.modela.jni;
+package tech.anapad.modela.util.i2c;
+
+import static java.lang.System.loadLibrary;
 
 /**
- * {@link I2CInterface} is used to interface with the I2C protocol using low-level C functions via JNI.
+ * {@link I2CNative} is used to interface with the I2C protocol using low-level native C functions via JNI.
  */
-public class I2CInterface {
+public class I2CNative {
 
     static {
         // Load the .so shared library that should be placed in '/lib' and be named exactly "libmodela.so"
-        System.loadLibrary("modela");
+        loadLibrary("modela");
     }
 
     /**
      * Starts the low-level I2C interface.
      *
-     * @param devPath the linux sysfs device path
+     * @param i2cDeviceIndex the I2C linux sysfs device index (e.g. for "/dev/i2c-1" pass <code>1</code> here)
      *
-     * @return the file descriptor integer of the low-level linux sysfs device path which is used in subsequent I2C
+     * @return the device file descriptor integer of the low-level linux sysfs device path to be used in subsequent I2C
      * requests
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native int i2cStart(String devPath) throws Exception;
+    public static native int start(int i2cDeviceIndex) throws Exception;
 
     /**
      * Stops the low-level I2C interface.
      *
-     * @param devPath the linux sysfs device path
+     * @param fd the low-level I2C device file descriptor
      *
-     * @return the file descriptor integer of the low-level linux sysfs device path which is used in subsequent I2C
-     * requests
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native int i2cStop(String devPath) throws Exception;
+    public static native void stop(int fd) throws Exception;
 
     /**
      * Writes a byte an I2C slave.
@@ -41,7 +41,7 @@ public class I2CInterface {
      *
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native void i2cWriteByte(int fd, short slaveAddress, byte data) throws Exception;
+    public static native void writeByte(int fd, short slaveAddress, byte data) throws Exception;
 
     /**
      * Writes a byte to a register of an I2C slave.
@@ -55,7 +55,7 @@ public class I2CInterface {
      *
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native void i2cWriteRegisterByte(int fd, short slaveAddress, short registerAddress, byte registerData,
+    public static native void writeRegisterByte(int fd, short slaveAddress, short registerAddress, byte registerData,
             boolean is8BitRegisterAddress) throws Exception;
 
     /**
@@ -70,7 +70,7 @@ public class I2CInterface {
      *
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native void i2cWriteRegisterBytes(int fd, short slaveAddress, short registerAddress,
+    public static native void writeRegisterBytes(int fd, short slaveAddress, short registerAddress,
             byte[] registerData, boolean is8BitRegisterAddress) throws Exception;
 
     /**
@@ -82,7 +82,7 @@ public class I2CInterface {
      * @return the read byte
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native byte i2cReadByte(int fd, short slaveAddress) throws Exception;
+    public static native byte readByte(int fd, short slaveAddress) throws Exception;
 
     /**
      * Reads a byte from a register of an I2C slave.
@@ -96,7 +96,7 @@ public class I2CInterface {
      * @return the read register byte
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native byte i2cReadRegisterByte(int fd, short slaveAddress, short registerAddress,
+    public static native byte readRegisterByte(int fd, short slaveAddress, short registerAddress,
             boolean is8BitRegisterAddress) throws Exception;
 
     /**
@@ -112,6 +112,6 @@ public class I2CInterface {
      * @return the read register byte array
      * @throws Exception thrown for {@link Exception}s
      */
-    public static native byte[] i2cReadRegisterBytes(int fd, short slaveAddress, short registerAddress, int readSize,
+    public static native byte[] readRegisterBytes(int fd, short slaveAddress, short registerAddress, int readSize,
             boolean is8BitRegisterAddress) throws Exception;
 }

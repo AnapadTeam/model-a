@@ -9,4 +9,4 @@ fi
 CORE_DIRECTORY="../core/"
 TARGET_C_HEADER_FILE="src/jni/"
 
-javac "${CORE_DIRECTORY}/src/main/java/tech/anapad/modela/jni/I2CInterface.java" -h "${TARGET_C_HEADER_FILE}"
+javac "${CORE_DIRECTORY}/src/main/java/tech/anapad/modela/util/i2c/I2CNative.java" -h "${TARGET_C_HEADER_FILE}"

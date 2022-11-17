@@ -1,5 +1,8 @@
 package tech.anapad.modela.util.math;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 /**
  * {@link MathUtil} contains utility functions for math.
  */
@@ -15,6 +18,6 @@ public class MathUtil {
      * @return the clamped integer
      */
     public static int clamp(int value, int min, int max) {
-        return Math.max(min, Math.min(max, value));
+        return max(min, min(max, value));
     }
 }

@@ -4,9 +4,17 @@
 
 #include "i2c.h"
 
-// TODO rewrite all of the below
+int32_t i2c_start(const char* dev_path) {
+    return open(dev_path, O_RDWR);
+}
 
-int32_t i2c_write_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uint8_t byte) {
+int32_t i2c_stop(uint32_t fd) {
+    return close(fd);
+}
+
+// TODO below should be re-written and optimized
+
+int32_t i2c_write_byte(uint32_t fd, uint16_t slave_address, uint8_t byte) {
     struct i2c_msg i2c_msg;
     i2c_msg.addr = slave_address;
     i2c_msg.flags = 0; // Write flag
@@ -19,15 +27,15 @@ int32_t i2c_write_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uint8_t byte
     i2c_transfer.msgs = &i2c_msg;
     i2c_transfer.nmsgs = 1;
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 
     return 0;
 }
 
-int32_t i2c_write_register_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uint16_t register_address,
-        uint8_t register_data, bool is8BitRegisterAddress) {
+int32_t i2c_write_register_byte(uint32_t fd, uint16_t slave_address, uint16_t register_address, uint8_t register_data,
+        bool is8BitRegisterAddress) {
     struct i2c_msg i2c_msg;
     i2c_msg.addr = slave_address;
     i2c_msg.flags = 0; // Write flag
@@ -45,15 +53,15 @@ int32_t i2c_write_register_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uin
     i2c_transfer.msgs = &i2c_msg;
     i2c_transfer.nmsgs = 1;
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 
     return 0;
 }
 
-int32_t i2c_write_register_bytes(uint32_t i2c_dev_fd, uint16_t slave_address, uint16_t register_address,
-        uint8_t* register_data, uint16_t register_data_length, bool is8BitRegisterAddress) {
+int32_t i2c_write_register_bytes(uint32_t fd, uint16_t slave_address, uint16_t register_address, uint8_t* register_data,
+        uint16_t register_data_length, bool is8BitRegisterAddress) {
     struct i2c_msg i2c_msg;
     i2c_msg.addr = slave_address;
     i2c_msg.flags = 0; // Write flag
@@ -77,14 +85,14 @@ int32_t i2c_write_register_bytes(uint32_t i2c_dev_fd, uint16_t slave_address, ui
     i2c_transfer.msgs = &i2c_msg;
     i2c_transfer.nmsgs = 1;
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 
     return 0;
 }
 
-int32_t i2c_read_byte(uint32_t i2c_dev_fd, uint16_t slave_address) {
+int32_t i2c_read_byte(uint32_t fd, uint16_t slave_address) {
     uint8_t register_byte = 0;
 
     struct i2c_msg i2c_msgs[1];
@@ -98,14 +106,14 @@ int32_t i2c_read_byte(uint32_t i2c_dev_fd, uint16_t slave_address) {
     i2c_transfer.msgs = i2c_msgs;
     i2c_transfer.nmsgs = SIZE_OF_ARRAY(i2c_msgs);
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 
     return register_byte;
 }
 
-int32_t i2c_read_register_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uint16_t register_address,
+int32_t i2c_read_register_byte(uint32_t fd, uint16_t slave_address, uint16_t register_address,
         bool is8BitRegisterAddress) {
     uint8_t register_byte = 0;
 
@@ -132,15 +140,15 @@ int32_t i2c_read_register_byte(uint32_t i2c_dev_fd, uint16_t slave_address, uint
     i2c_transfer.msgs = i2c_msgs;
     i2c_transfer.nmsgs = SIZE_OF_ARRAY(i2c_msgs);
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 
     return register_byte;
 }
 
-int32_t i2c_read_register_bytes(uint32_t i2c_dev_fd, uint16_t slave_address, uint16_t register_address,
-        uint8_t* register_data, uint16_t register_data_length, bool is8BitRegisterAddress) {
+int32_t i2c_read_register_bytes(uint32_t fd, uint16_t slave_address, uint16_t register_address, uint8_t* register_data,
+        uint16_t register_data_length, bool is8BitRegisterAddress) {
     struct i2c_msg i2c_msgs[2];
 
     i2c_msgs[0].addr = slave_address;
@@ -164,7 +172,7 @@ int32_t i2c_read_register_bytes(uint32_t i2c_dev_fd, uint16_t slave_address, uin
     i2c_transfer.msgs = i2c_msgs;
     i2c_transfer.nmsgs = sizeof(i2c_msgs) / sizeof(i2c_msgs[0]);
 
-    if (ioctl(i2c_dev_fd, I2C_RDWR, &i2c_transfer) < 0) {
+    if (ioctl(fd, I2C_RDWR, &i2c_transfer) < 0) {
         return -1;
     }
 

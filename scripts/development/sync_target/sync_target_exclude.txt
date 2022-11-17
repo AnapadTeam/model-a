@@ -1,7 +1,0 @@
-.DS_Store
-core/.idea/
-core/build/
-core/.gradle/
-native/.idea/
-native/build/
-native/cmake-build-debug/

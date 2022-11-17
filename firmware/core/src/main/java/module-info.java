@@ -3,6 +3,7 @@ module ModelA {
     requires ch.qos.logback.classic;
     requires sysout.over.slf4j;
     requires jcommander;
+    opens tech.anapad.modela to jcommander;
 
     requires javafx.base;
     requires javafx.graphics;

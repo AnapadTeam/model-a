@@ -9,7 +9,7 @@ plugins {
 }
 
 group "tech.anapad"
-version "1.0"
+version "0"
 
 repositories {
     mavenCentral()
@@ -26,7 +26,7 @@ dependencies {
     implementation group: "uk.org.lidalia", name: "sysout-over-slf4j", version: "1.0.2"
 
     // For parsing CLI parameters
-    implementation group: 'com.beust', name: 'jcommander', version: '1.82'
+    implementation group: "com.beust", name: "jcommander", version: "1.82"
 }
 
 sourceCompatibility = JavaVersion.VERSION_14
@@ -42,7 +42,8 @@ applicationName = "modela"
 applicationDefaultJvmArgs = ["-XX:InitialRAMPercentage=10.0", "-XX:MaxRAMPercentage=95.0",
                              "-Dprism.verbose=true",
                              "-Dembedded=monocle", "-Dglass.platform=Monocle", "-Dmonocle.platform=EGL",
-                             "-Dmonocle.egl.lib=/opt/java/libgluon_drm-1.1.7.so"]
+                             "-Dmonocle.egl.lib=/opt/java/libgluon_drm-1.1.7.so",
+                             "-Dlogging.config=logback/logback.development.xml"]
 
 distTar.enabled = false
 distZip.enabled = false

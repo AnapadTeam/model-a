@@ -5,9 +5,9 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 /**
- * {@link LauncherArguments} contains the arguments parsed from the CLI.
+ * {@link Arguments} contains the arguments parsed from the CLI.
  */
-public final class LauncherArguments {
+public final class Arguments {
 
     private final String[] cliArguments;
     private JCommander jCommander;
@@ -22,11 +22,11 @@ public final class LauncherArguments {
     private boolean runProduction = false;
 
     /**
-     * Instantiates a new {@link LauncherArguments}.
+     * Instantiates a new {@link Arguments}.
      *
      * @param cliArguments the CLI arguments
      */
-    public LauncherArguments(String[] cliArguments) {
+    public Arguments(String[] cliArguments) {
         this.cliArguments = cliArguments;
     }
 

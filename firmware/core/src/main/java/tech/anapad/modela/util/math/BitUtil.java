@@ -1,7 +1,7 @@
 package tech.anapad.modela.util.math;
 
 /**
- * {@link BitUtil} contains utility functions for bits.
+ * {@link BitUtil} contains utility functions for bit manipulation.
  */
 public class BitUtil {
 
@@ -13,7 +13,7 @@ public class BitUtil {
      *
      * @return the bit mask
      */
-    private static int createMask(int msb, int lsb) {
+    public static int createBitMask(int msb, int lsb) {
         return (~0 << (msb + 1)) | ~(~0 << lsb);
     }
 
@@ -28,7 +28,7 @@ public class BitUtil {
      * @return the set value
      */
     public static int setBits(int toSet, int value, int msb, int lsb) {
-        int mask = createMask(msb, lsb);
+        int mask = createBitMask(msb, lsb);
         toSet |= ~mask & (value << lsb);
         toSet &= mask | (value << lsb);
         return toSet;
@@ -57,7 +57,7 @@ public class BitUtil {
      * @return the value
      */
     public static int getBits(int toGet, int msb, int lsb) {
-        int mask = createMask(msb, lsb);
+        int mask = createBitMask(msb, lsb);
         return (toGet & ~mask) >> lsb;
     }
 
