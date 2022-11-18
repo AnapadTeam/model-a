@@ -3,7 +3,7 @@ package tech.anapad.modela.util.math;
 /**
  * {@link BitUtil} contains utility functions for bit manipulation.
  */
-public class BitUtil {
+public final class BitUtil {
 
     /**
      * Creates a bit mask with the given <code>msb</code> and <code>lsb</code>.

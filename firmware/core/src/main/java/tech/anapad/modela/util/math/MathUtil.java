@@ -6,7 +6,7 @@ import static java.lang.Math.min;
 /**
  * {@link MathUtil} contains utility functions for math.
  */
-public class MathUtil {
+public final class MathUtil {
 
     /**
      * Clamps an integer.

@@ -5,7 +5,7 @@ import static java.lang.System.loadLibrary;
 /**
  * {@link I2CNative} is used to interface with the I2C protocol using low-level native C functions via JNI.
  */
-public class I2CNative {
+public final class I2CNative {
 
     static {
         // Load the .so shared library that should be placed in '/lib' and be named exactly "libmodela.so"

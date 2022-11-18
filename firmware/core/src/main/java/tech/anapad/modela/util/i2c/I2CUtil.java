@@ -10,7 +10,7 @@ import static tech.anapad.modela.util.math.BitUtil.setBits;
 /**
  * {@link I2CUtil} contains utility functions of I2C interfacing.
  */
-public class I2CUtil {
+public final class I2CUtil {
 
     /**
      * Sets bits in an I2C slave.
@@ -24,7 +24,7 @@ public class I2CUtil {
      * @param msb                   the MSB (0 - 31) (inclusive)
      * @param lsb                   the LSB (0 - 31) (inclusive)
      *
-     * @throws Exception the {@link Exception}
+     * @throws Exception thrown for {@link Exception}s
      * @see BitUtil
      * @see I2CNative
      */
@@ -62,7 +62,7 @@ public class I2CUtil {
      * @param index                 the index of the bit to get
      *
      * @return the register bit
-     * @throws Exception the {@link Exception}
+     * @throws Exception thrown for {@link Exception}s
      * @see BitUtil
      * @see I2CNative
      */
