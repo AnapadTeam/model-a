@@ -29,10 +29,12 @@ public class TouchscreenController implements Runnable {
     private static final short GT9110_I2C_ADDRESS = 0x5D;
     private static final short GT9110_REGISTER_RESOLUTION = (short) 0x8146;
     private static final short GT9110_REGISTER_STATUS = (short) 0x814E;
-    private static final int GT9110_TOUCH_REGISTER_LENGTH = 8;
-    private static final int GT9110_TOTAL_TOUCH_DATA_LENGTH = GT9110_TOUCH_REGISTER_LENGTH * 10; // 10 8-byte touch data
+    private static final short GT9110_REGISTER_TOUCHES_START = (short) 0x814F;
+    private static final int GT9110_TOUCH_REGISTER_LENGTH = 8; // Each touch has 8 bytes of data
+    private static final int GT9110_TOTAL_TOUCH_DATA_LENGTH = GT9110_TOUCH_REGISTER_LENGTH * 10; // 10 touches
 
     private final ModelA modelA;
+    private final List<Runnable> initializedListeners;
     private final List<Consumer<Touch[]>> touchListeners;
 
     private Thread scanThread;
@@ -48,6 +50,7 @@ public class TouchscreenController implements Runnable {
      */
     public TouchscreenController(ModelA modelA) {
         this.modelA = modelA;
+        initializedListeners = new ArrayList<>();
         touchListeners = synchronizedList(new ArrayList<>());
         scanLoop = false;
     }
@@ -71,6 +74,10 @@ public class TouchscreenController implements Runnable {
         xResolution = (touchscreenResolutionBytes[1] << 8) | touchscreenResolutionBytes[0];
         yResolution = (touchscreenResolutionBytes[3] << 8) | touchscreenResolutionBytes[2];
         LOGGER.info("Read touchscreen resolution: {}x{}", xResolution, yResolution);
+
+        LOGGER.info("Calling initialized listeners...");
+        initializedListeners.forEach(Runnable::run);
+        LOGGER.info("Called initialized listeners.");
 
         LOGGER.info("Starting scan thread...");
         scanLoop = true;
@@ -113,6 +120,8 @@ public class TouchscreenController implements Runnable {
     @Override
     public void run() {
         while (scanLoop) {
+            // TODO implement a way to add a delay for power saving and such
+
             // Wait until touchscreen data is ready to be read
             byte coordinateStatusRegister = 0;
             boolean bufferReady;
@@ -142,7 +151,7 @@ public class TouchscreenController implements Runnable {
             final byte[] touchBytes;
             try {
                 touchBytes = readRegisterBytes(i2cFD, GT9110_I2C_ADDRESS,
-                        GT9110_REGISTER_STATUS, GT9110_TOTAL_TOUCH_DATA_LENGTH, false);
+                        GT9110_REGISTER_TOUCHES_START, GT9110_TOTAL_TOUCH_DATA_LENGTH, false);
             } catch (Exception ignored) {
                 LOGGER.warn("Failed to read touchscreen touches.");
                 continue;
@@ -155,8 +164,10 @@ public class TouchscreenController implements Runnable {
                 // TODO convert to 'BitUtil.getBits'
                 final Touch touch = new Touch();
                 touch.setID(touchBytes[arrayIndex] & 0xFF);
-                touch.setX(((touchBytes[arrayIndex + 2] & 0xFF) << 8) | (touchBytes[arrayIndex + 1] & 0xFF));
-                touch.setY(((touchBytes[arrayIndex + 4] & 0xFF) << 8) | (touchBytes[arrayIndex + 3] & 0xFF));
+                touch.setX(xResolution -
+                        (((touchBytes[arrayIndex + 2] & 0xFF) << 8) | (touchBytes[arrayIndex + 1] & 0xFF)));
+                touch.setY(yResolution -
+                        (((touchBytes[arrayIndex + 4] & 0xFF) << 8) | (touchBytes[arrayIndex + 3] & 0xFF)));
                 touch.setSize(((touchBytes[arrayIndex + 6] & 0xFF) << 8) | (touchBytes[arrayIndex + 5] & 0xFF));
                 touches[index] = touch;
             }
@@ -166,6 +177,10 @@ public class TouchscreenController implements Runnable {
                 touchListeners.forEach(listener -> listener.accept(touches));
             }
         }
+    }
+
+    public List<Runnable> getInitializedListeners() {
+        return initializedListeners;
     }
 
     public List<Consumer<Touch[]>> getTouchListeners() {

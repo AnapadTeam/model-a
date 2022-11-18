@@ -28,8 +28,6 @@ public abstract class AbstractModeView {
 
     /**
      * Called when mode is active and there are touchscreen touches to process.
-     * <p>
-     * Must be called on the JavaFX thread!
      *
      * @param touches the {@link Touch}es
      */

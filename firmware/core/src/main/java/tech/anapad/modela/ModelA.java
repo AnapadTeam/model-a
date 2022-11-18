@@ -15,6 +15,7 @@ import static javafx.application.Platform.exit;
 /**
  * {@link ModelA} is the main entrypoint for the Model A core firmware.
  */
+@SuppressWarnings("ClassEscapesDefinedScope")
 public class ModelA extends Application {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelA.class);
@@ -38,14 +39,14 @@ public class ModelA extends Application {
         LOGGER.info("Starting...");
         try {
             viewController = new ViewController(this);
-            viewController.start(stage);
             usbController = new USBController(this);
-            usbController.start();
             touchscreenController = new TouchscreenController(this);
-            touchscreenController.start();
             hapticsBoardController = new HapticsBoardController(this);
-            hapticsBoardController.start();
             loadSurfaceController = new LoadSurfaceController(this);
+            viewController.start(stage);
+            usbController.start();
+            touchscreenController.start();
+            hapticsBoardController.start();
             loadSurfaceController.start();
         } catch (Exception exception) {
             LOGGER.error("A fatal error occurred while starting!", exception);
@@ -106,7 +107,27 @@ public class ModelA extends Application {
         exit();
     }
 
-    public static Arguments getArguments() {
+    public Arguments getArguments() {
         return arguments;
+    }
+
+    public ViewController getViewController() {
+        return viewController;
+    }
+
+    public USBController getUSBController() {
+        return usbController;
+    }
+
+    public TouchscreenController getTouchscreenController() {
+        return touchscreenController;
+    }
+
+    public HapticsBoardController getHapticsBoardController() {
+        return hapticsBoardController;
+    }
+
+    public LoadSurfaceController getLoadSurfaceController() {
+        return loadSurfaceController;
     }
 }

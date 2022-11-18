@@ -3,6 +3,19 @@ package tech.anapad.modela.usb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.anapad.modela.ModelA;
+import tech.anapad.modela.usb.model.HIDReport;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import static java.lang.Thread.sleep;
+import static tech.anapad.modela.util.exception.ExceptionUtil.ignoreException;
+import static tech.anapad.modela.util.file.FileUtil.exists;
+import static tech.anapad.modela.util.file.FileUtil.makePath;
+import static tech.anapad.modela.util.file.FileUtil.removePath;
+import static tech.anapad.modela.util.file.FileUtil.symlink;
+import static tech.anapad.modela.util.file.FileUtil.writeBytes;
+import static tech.anapad.modela.util.file.FileUtil.writeString;
 
 /**
  * {@link USBController} is a controller for the USB HID interface and communication channel.
@@ -11,7 +24,22 @@ public class USBController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(USBController.class);
 
+    // Define configfs string constants
+    private static final String KERNEL_CONFIG_USB_GADGET = "/sys/kernel/config/usb_gadget/";
+    private static final String GADGET_NAME = "model_a/";
+    private static final String GADGET_PATH = KERNEL_CONFIG_USB_GADGET + GADGET_NAME;
+    private static final String GADGET_EN_STRINGS_PATH = GADGET_PATH + "strings/0x409/";
+    private static final String GADGET_CONFIG_1_PATH = GADGET_PATH + "configs/c.1/";
+    private static final String GADGET_CONFIG_1_EN_STRINGS_PATH = GADGET_CONFIG_1_PATH + "strings/0x409/";
+    private static final String GADGET_HID_FUNCTIONS_0_NAME = "hid.0";
+    private static final String GADGET_HID_FUNCTIONS_0_PATH = GADGET_PATH + "functions/" +
+            GADGET_HID_FUNCTIONS_0_NAME + "/";
+    private static final String GADGET_UDC_PATH = GADGET_PATH + "UDC";
+    private static final String GADGET_UDC = "fe980000.usb"; // Name of the RPi CM4 UDC
+    private static final String GADGET_HID_DEVICE_PATH = "/dev/hidg0";
+
     private final ModelA modelA;
+    private FileOutputStream hidDeviceOutputStream;
 
     /**
      * Instantiates a new {@link USBController}.
@@ -24,8 +52,10 @@ public class USBController {
 
     /**
      * Starts {@link USBController}.
+     *
+     * @throws Exception thrown for {@link Exception}s
      */
-    public void start() {
+    public void start() throws Exception {
         LOGGER.info("Starting USBController...");
         initializeUSBGadget();
         LOGGER.info("Started USBController.");
@@ -33,18 +63,12 @@ public class USBController {
 
     /**
      * Creates the USB HID interface via Linux GadgetFS.
+     *
+     * @throws InterruptedException thrown for {@link InterruptedException}s
+     * @throws IOException          thrown for {@link IOException}s
      */
-    private void initializeUSBGadget() {
-        // Define configfs string constants
-        final String kernelConfigPath = "/sys/kernel/config/usb_gadget/";
-        final String gadgetName = "modela/";
-        final String gadgetPath = kernelConfigPath + gadgetName;
-        final String enStringsPath = gadgetPath + "strings/0x409/";
-        final String config1Path = gadgetPath + "configs/c.1/";
-        final String config1EnStringsPath = config1Path + "strings/0x409/";
-        final String functions0Name = "hid.0";
-        final String functions0Path = gadgetPath + "functions/" + functions0Name + "/";
-        final String udcName = "fe980000.usb"; // Name of the RPi CM4 UDC
+    private void initializeUSBGadget() throws InterruptedException, IOException {
+        LOGGER.info("Initializing USB Gadget via Linux configfs...");
 
         // The following USB HID report descriptor contains two usages with the first being
         // the mouse and the second being the keyboard.
@@ -114,13 +138,119 @@ public class USBController {
         for (int index = 0; index < hidReportDescriptor.length; index++) {
             hidReportDescriptorBytes[index] = (byte) (hidReportDescriptor[index] & 0xFF);
         }
+
+        // Create configfs USB gadget files
+        if (exists(GADGET_PATH)) {
+            LOGGER.warn("Removing stale USB gadget path: {}", GADGET_PATH);
+            removeUSBGadget();
+        }
+        final int gadgetPathAttemptsMax = 20;
+        int gadgetPathAttempts = 0;
+        while (gadgetPathAttempts < gadgetPathAttemptsMax) {
+            if (makePath(GADGET_PATH)) {
+                break;
+            }
+            sleep(250);
+            gadgetPathAttempts++;
+        }
+        if (gadgetPathAttempts == gadgetPathAttemptsMax) {
+            throw new RuntimeException("Gadget path creation attempts exceeded maximum!");
+        }
+
+        // Populate configs USB gadget files
+
+        writeString(GADGET_PATH + "idVendor", "0x1d6b"); // Linux Foundation
+        writeString(GADGET_PATH + "idProduct", "0x0104"); // Multifunction Composite Gadget
+        writeString(GADGET_PATH + "bcdDevice", "0x0000"); // v0.0.0
+        writeString(GADGET_PATH + "bcdUSB", "0x0200"); // USB2
+        writeString(GADGET_PATH + "max_speed", "full-speed"); // USB Full-Speed 12Mb/s
+
+        makePath(GADGET_EN_STRINGS_PATH);
+        writeString(GADGET_EN_STRINGS_PATH + "serialnumber", "A00000000");
+        writeString(GADGET_EN_STRINGS_PATH + "manufacturer", "Anapad Team");
+        writeString(GADGET_EN_STRINGS_PATH + "product", "Model A Anapad");
+
+        makePath(GADGET_CONFIG_1_EN_STRINGS_PATH);
+        writeString(GADGET_CONFIG_1_EN_STRINGS_PATH + "configuration", "Model A Anapad Config");
+        writeString(GADGET_CONFIG_1_PATH + "MaxPower", "250"); // 250mA
+
+        makePath(GADGET_HID_FUNCTIONS_0_PATH);
+        writeString(GADGET_HID_FUNCTIONS_0_PATH + "protocol", "0"); // 1 = keyboard, 2 = mouse
+        writeString(GADGET_HID_FUNCTIONS_0_PATH + "subclass", "1"); // 0 = no boot, 1 = boot
+        writeString(GADGET_HID_FUNCTIONS_0_PATH + "report_length", "12"); // Report length is 12 bytes
+        writeBytes(GADGET_HID_FUNCTIONS_0_PATH + "report_desc", hidReportDescriptorBytes);
+        symlink(GADGET_CONFIG_1_PATH + GADGET_HID_FUNCTIONS_0_NAME, GADGET_HID_FUNCTIONS_0_PATH);
+
+        writeString(GADGET_UDC_PATH, GADGET_UDC); // Enable the gadget
+
+        LOGGER.info("Initialized USB Gadget via Linux configfs.");
+    }
+
+    /**
+     * Write an {@link HIDReport}. <code>5</code> attempts are made with a <code>100ms</code> period before giving up
+     * and thrown an {@link IOException}.
+     *
+     * @param hidReport the {@link HIDReport}
+     *
+     * @throws InterruptedException thrown for {@link InterruptedException}s
+     * @throws IOException          thrown for {@link IOException}s
+     */
+    public void writeHIDReport(HIDReport hidReport) throws InterruptedException, IOException {
+        if (hidDeviceOutputStream == null) {
+            hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
+        }
+        final int hidDeviceWriteAttemptsMax = 5;
+        int hidDeviceWriteAttempts = 0;
+        while (hidDeviceWriteAttempts < hidDeviceWriteAttemptsMax) {
+            try {
+                hidDeviceOutputStream.write(hidReport.toByteArray());
+                break;
+            } catch (Exception exception) {
+                LOGGER.warn("Failed to write to USB HID device file on attempt {}.",
+                        hidDeviceWriteAttempts + 1, exception);
+            }
+            sleep(100);
+            hidDeviceWriteAttempts++;
+        }
+        if (hidDeviceWriteAttempts == hidDeviceWriteAttemptsMax) {
+            throw new IOException("USB HID device file write attempts exceeded maximum!");
+        }
+    }
+
+    /**
+     * Removes the USB HID interface via Linux GadgetFS. This method with never thrown an {@link Exception}.
+     */
+    private void removeUSBGadget() {
+        LOGGER.info("Removing USB Gadget from Linux configfs...");
+        ignoreException(() -> writeString(GADGET_UDC_PATH, ""));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH + GADGET_HID_FUNCTIONS_0_NAME));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_EN_STRINGS_PATH));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH));
+        ignoreException(() -> removePath(GADGET_HID_FUNCTIONS_0_PATH));
+        ignoreException(() -> removePath(GADGET_EN_STRINGS_PATH));
+        ignoreException(() -> removePath(GADGET_PATH));
+        LOGGER.info("Removed USB Gadget from Linux configfs...");
     }
 
     /**
      * Stops {@link USBController}.
      */
     public void stop() {
+        LOGGER.info("Stopping USBController...");
 
+        if (hidDeviceOutputStream != null) {
+            LOGGER.info("Closing HID device output stream...");
+            try {
+                hidDeviceOutputStream.close();
+                LOGGER.info("Closed HID device output stream.");
+            } catch (IOException ioException) {
+                LOGGER.error("Could not close HID device output stream!", ioException);
+            }
+        }
+
+        removeUSBGadget();
+
+        LOGGER.info("Stopped USBController...");
     }
 
     public ModelA getModelA() {

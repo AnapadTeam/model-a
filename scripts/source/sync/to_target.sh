@@ -8,5 +8,5 @@ if [[ $# -ne 1 ]]; then
     exit 1
 fi
 
-rsync -alPz --delete --exclude-from="${SCRIPT_DIRECTORY}/to_target_exclude.txt" "${PROJECT_ROOT_DIRECTORY}" "root@${1}:~/modela/"
-ssh "root@${1}" '/bin/bash -c "chown -R root:root ~/modela/"'
+rsync -alPz --delete --exclude-from="${SCRIPT_DIRECTORY}/to_target_exclude.txt" "${PROJECT_ROOT_DIRECTORY}" "root@${1}:~/model-a/"
+ssh "root@${1}" '/bin/bash -c "chown -R root:root ~/model-a/"'
