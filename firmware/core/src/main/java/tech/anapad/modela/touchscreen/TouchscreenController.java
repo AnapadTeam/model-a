@@ -161,7 +161,6 @@ public class TouchscreenController implements Runnable {
             final Touch[] touches = new Touch[numberOfTouches];
             for (int index = 0; index < touches.length; index++) {
                 final int arrayIndex = index * GT9110_TOUCH_REGISTER_LENGTH;
-                // TODO convert to 'BitUtil.getBits'
                 final Touch touch = new Touch();
                 touch.setID(touchBytes[arrayIndex] & 0xFF);
                 touch.setX(xResolution -

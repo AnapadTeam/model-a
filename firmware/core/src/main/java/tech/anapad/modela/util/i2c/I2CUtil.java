@@ -4,7 +4,7 @@ import tech.anapad.modela.util.math.BitUtil;
 
 import static tech.anapad.modela.util.i2c.I2CNative.readRegisterByte;
 import static tech.anapad.modela.util.i2c.I2CNative.writeRegisterByte;
-import static tech.anapad.modela.util.math.BitUtil.getBit;
+import static tech.anapad.modela.util.math.BitUtil.getBits;
 import static tech.anapad.modela.util.math.BitUtil.setBits;
 
 /**
@@ -59,15 +59,24 @@ public final class I2CUtil {
      * @param registerAddress       the register address
      * @param is8BitRegisterAddress <code>true</code> for 8 bit register address, <code>false</code> for 16 bit
      *                              register address
-     * @param index                 the index of the bit to get
+     * @param msb                   the MSB (0 - 31) (inclusive)
+     * @param lsb                   the LSB (0 - 31) (inclusive)
      *
-     * @return the register bit
+     * @return the register bits
      * @throws Exception thrown for {@link Exception}s
      * @see BitUtil
      * @see I2CNative
      */
+    public static int getRegisterBits(int fd, short slaveAddress, short registerAddress,
+            boolean is8BitRegisterAddress, int msb, int lsb) throws Exception {
+        return getBits(readRegisterByte(fd, slaveAddress, registerAddress, is8BitRegisterAddress), msb, lsb);
+    }
+
+    /**
+     * Calls {@link #getRegisterBits(int, short, short, boolean, int, int)} with the given bit index.
+     */
     public static boolean getRegisterBit(int fd, short slaveAddress, short registerAddress,
             boolean is8BitRegisterAddress, int index) throws Exception {
-        return getBit(readRegisterByte(fd, slaveAddress, registerAddress, is8BitRegisterAddress), index) == 1;
+        return getRegisterBits(fd, slaveAddress, registerAddress, is8BitRegisterAddress, index, index) == 1;
     }
 }

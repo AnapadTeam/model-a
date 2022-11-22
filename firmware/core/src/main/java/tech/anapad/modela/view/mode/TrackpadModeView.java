@@ -12,6 +12,7 @@ import java.io.IOException;
 import static tech.anapad.modela.util.math.MathUtil.clamp;
 import static tech.anapad.modela.view.ViewController.VIEW_IMAGE_CLASSPATH;
 import static tech.anapad.modela.view.model.AnapadMode.KEYBOARD;
+import static tech.anapad.modela.view.model.AnapadMode.TRACKPAD;
 
 /**
  * {@link TrackpadModeView} is a {@link AbstractModeView} for trackpad mode.
@@ -30,7 +31,7 @@ public class TrackpadModeView extends AbstractModeView {
     boolean touchscreenMultiTouchedDown = false;
     int touchscreenLastTouchCount = 0;
     int touchscreenWheelMoveCount = 0;
-    final int wheelMoveCountIncrementThreshold = 110;
+    final int wheelMoveCountIncrementThreshold = 10;
 
     /**
      * Instantiates a new {@link TrackpadModeView}.
@@ -51,8 +52,9 @@ public class TrackpadModeView extends AbstractModeView {
         if (touches.length > 0) {
             final int x = touches[0].getX();
             final int y = touches[0].getY();
-            if (!(x > 1066 && x < 1686 && y > 71 && y < 390)) {
+            if (x > 820 && x < 1058 && y > 96 && y < 420) {
                 viewController.setMode(KEYBOARD);
+            } else if (!(x > 1066 && x < 1686 && y > 71 && y < 390)) {
                 return;
             }
 

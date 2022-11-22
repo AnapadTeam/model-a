@@ -56,6 +56,7 @@ public class ViewController {
     private AnapadMode currentAnapadMode;
     private double touchXMultiplier;
     private double touchYMultiplier;
+    private boolean modeTransitioning;
 
     /**
      * Instantiates a new {@link ViewController}.
@@ -118,7 +119,7 @@ public class ViewController {
      * @param anapadMode the {@link AnapadMode}
      */
     public void setMode(AnapadMode anapadMode) {
-        if (currentAnapadMode == anapadMode) {
+        if (currentAnapadMode == anapadMode || modeTransitioning) {
             return;
         }
 
@@ -152,6 +153,8 @@ public class ViewController {
         fadeIn.setToValue(1.0);
         fadeIn.play();
         fadeInModeView.getModeImageView().setVisible(true);
+        fadeIn.setOnFinished(event -> modeTransitioning = false);
+        modeTransitioning = true;
         if (fadeOutModeView != null) {
             final FadeTransition fadeOut = new FadeTransition(fadeDuration, fadeOutModeView.getModeImageView());
             fadeOut.setFromValue(1.0);
