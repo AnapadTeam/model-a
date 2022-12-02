@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.anapad.modela.ModelA;
 import tech.anapad.modela.touchscreen.TouchscreenController;
-import tech.anapad.modela.touchscreen.model.Touch;
+import tech.anapad.modela.touchscreen.Touch;
 import tech.anapad.modela.view.debug.TouchesView;
 import tech.anapad.modela.view.mode.AbstractModeView;
 import tech.anapad.modela.view.mode.KeyboardModeView;

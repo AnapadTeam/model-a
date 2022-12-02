@@ -1,4 +1,4 @@
-package tech.anapad.modela.touchscreen.model;
+package tech.anapad.modela.touchscreen;
 
 /**
  * {@link Touch} is a model representing a touchscreen touch. Instantiate objects of this class should be treated as

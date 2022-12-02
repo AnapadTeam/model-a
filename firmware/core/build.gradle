@@ -25,6 +25,9 @@ dependencies {
     // For redirecting stdout and stderr to SLF4j
     implementation group: "uk.org.lidalia", name: "sysout-over-slf4j", version: "1.0.2"
 
+    // Google Guava for a variety of useful methods
+    implementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
+
     // For parsing CLI parameters
     implementation group: "com.beust", name: "jcommander", version: "1.82"
 }

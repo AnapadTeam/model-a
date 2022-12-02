@@ -1,4 +1,4 @@
-package tech.anapad.modela.usb.model;
+package tech.anapad.modela.usb;
 
 /**
  * {@link HIDReport} is a model for the USB HID report data. Instantiate objects of this class should be treated as

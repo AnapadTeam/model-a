@@ -3,7 +3,6 @@ package tech.anapad.modela.usb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.anapad.modela.ModelA;
-import tech.anapad.modela.usb.model.HIDReport;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -187,7 +186,7 @@ public class USBController {
     }
 
     /**
-     * Write an {@link HIDReport}. <code>5</code> attempts are made with a <code>100ms</code> period before giving up
+     * Write an {@link HIDReport}. <code>10</code> attempts are made with a <code>100ms</code> period before giving up
      * and thrown an {@link IOException}.
      *
      * @param hidReport the {@link HIDReport}
@@ -199,7 +198,7 @@ public class USBController {
         if (hidDeviceOutputStream == null) {
             hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
         }
-        final int hidDeviceWriteAttemptsMax = 5;
+        final int hidDeviceWriteAttemptsMax = 10;
         int hidDeviceWriteAttempts = 0;
         while (hidDeviceWriteAttempts < hidDeviceWriteAttemptsMax) {
             try {

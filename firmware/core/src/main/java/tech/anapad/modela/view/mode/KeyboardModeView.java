@@ -2,15 +2,14 @@ package tech.anapad.modela.view.mode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.anapad.modela.touchscreen.model.Touch;
+import tech.anapad.modela.touchscreen.Touch;
 import tech.anapad.modela.usb.USBController;
-import tech.anapad.modela.usb.model.HIDReport;
+import tech.anapad.modela.usb.HIDReport;
 import tech.anapad.modela.view.ViewController;
 
 import java.io.IOException;
 
 import static tech.anapad.modela.view.ViewController.VIEW_IMAGE_CLASSPATH;
-import static tech.anapad.modela.view.model.AnapadMode.KEYBOARD;
 import static tech.anapad.modela.view.model.AnapadMode.TRACKPAD;
 
 /**

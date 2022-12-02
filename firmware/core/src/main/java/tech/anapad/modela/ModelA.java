@@ -38,16 +38,16 @@ public class ModelA extends Application {
 
         LOGGER.info("Starting...");
         try {
-            //viewController = new ViewController(this);
-            //usbController = new USBController(this);
-            //touchscreenController = new TouchscreenController(this);
+            viewController = new ViewController(this);
+            usbController = new USBController(this);
+            touchscreenController = new TouchscreenController(this);
             hapticsBoardController = new HapticsBoardController(this);
-            //loadSurfaceController = new LoadSurfaceController(this);
-            //viewController.start(stage);
-            //usbController.start();
-            //touchscreenController.start();
+            loadSurfaceController = new LoadSurfaceController(this);
+            viewController.start(stage);
+            usbController.start();
+            touchscreenController.start();
             hapticsBoardController.start();
-            //loadSurfaceController.start();
+            loadSurfaceController.start();
         } catch (Exception exception) {
             LOGGER.error("A fatal error occurred while starting!", exception);
             stop();

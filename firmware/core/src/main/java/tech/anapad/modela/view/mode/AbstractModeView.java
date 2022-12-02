@@ -1,7 +1,7 @@
 package tech.anapad.modela.view.mode;
 
 import javafx.scene.image.ImageView;
-import tech.anapad.modela.touchscreen.model.Touch;
+import tech.anapad.modela.touchscreen.Touch;
 import tech.anapad.modela.view.ViewController;
 
 /**

@@ -5,7 +5,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
-import tech.anapad.modela.touchscreen.model.Touch;
+import tech.anapad.modela.touchscreen.Touch;
 import tech.anapad.modela.view.ViewController;
 
 import static javafx.scene.paint.Color.BLACK;
