@@ -74,9 +74,9 @@ public class USBController {
         final int[] hidReportDescriptor = new int[]{
                 0x05, 0x01, // Usage Page (Generic Desktop)
                 0x09, 0x02, // Usage (Mouse)
-                0xa1, 0x01, // Collection (Application)
+                0xA1, 0x01, // Collection (Application)
                 0x09, 0x01, //   Usage (Pointer)
-                0xa1, 0x00, //   Collection (Physical)
+                0xA1, 0x00, //   Collection (Physical)
                 0x05, 0x09, //     Usage Page (Button)
                 0x19, 0x01, //     Usage Minimum (0x01)
                 0x29, 0x03, //     Usage Maximum (0x03)
@@ -93,18 +93,18 @@ public class USBController {
                 0x09, 0x31, //     Usage (Y)
                 0x09, 0x38, //     Usage (Wheel)
                 0x15, 0x81, //     Logical Minimum (-127)
-                0x25, 0x7f, //     Logical Maximum (127)
+                0x25, 0x7F, //     Logical Maximum (127)
                 0x75, 0x08, //     Report Size (8)
                 0x95, 0x03, //     Report Count (3)
                 0x81, 0x06, //     Input (Data,Var,Rel)
-                0xc0, //         End Collection
-                0xc0, //        End Collection
+                0xC0, //         End Collection
+                0xC0, //        End Collection
                 0x05, 0x01,  // Usage Page (Generic Desktop)
                 0x09, 0x06,  // Usage (Keyboard)
-                0xa1, 0x01,  // Collection (Application)
+                0xA1, 0x01,  // Collection (Application)
                 0x05, 0x07,  //   Usage Page (Keyboard)
-                0x19, 0xe0,  //   Usage Minimum (Keyboard LeftControl)
-                0x29, 0xe7,  //   Usage Maximum (Keyboard Right GUI)
+                0x19, 0xE0,  //   Usage Minimum (Keyboard LeftControl)
+                0x29, 0xE7,  //   Usage Maximum (Keyboard Right GUI)
                 0x15, 0x00,  //   Logical Minimum (0)
                 0x25, 0x01,  //   Logical Maximum (1)
                 0x75, 0x01,  //   Report Size (1)
@@ -130,9 +130,9 @@ public class USBController {
                 0x19, 0x00,  //   Usage Minimum (Reserved (no event indicated))
                 0x29, 0x65,  //   Usage Maximum (Keyboard Application)
                 0x81, 0x00,  //   Input (Data,Ary,Abs)
-                0xc0 //         End Collection
+                0xC0 //         End Collection
         };
-        // Concert report descriptor ints to bytes
+        // Convert report descriptor ints to bytes
         final byte[] hidReportDescriptorBytes = new byte[hidReportDescriptor.length];
         for (int index = 0; index < hidReportDescriptor.length; index++) {
             hidReportDescriptorBytes[index] = (byte) (hidReportDescriptor[index] & 0xFF);
@@ -186,52 +186,6 @@ public class USBController {
     }
 
     /**
-     * Write an {@link HIDReport}. <code>10</code> attempts are made with a <code>100ms</code> period before giving up
-     * and thrown an {@link IOException}.
-     *
-     * @param hidReport the {@link HIDReport}
-     *
-     * @throws InterruptedException thrown for {@link InterruptedException}s
-     * @throws IOException          thrown for {@link IOException}s
-     */
-    public void writeHIDReport(HIDReport hidReport) throws InterruptedException, IOException {
-        if (hidDeviceOutputStream == null) {
-            hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
-        }
-        final int hidDeviceWriteAttemptsMax = 10;
-        int hidDeviceWriteAttempts = 0;
-        while (hidDeviceWriteAttempts < hidDeviceWriteAttemptsMax) {
-            try {
-                hidDeviceOutputStream.write(hidReport.toByteArray());
-                break;
-            } catch (Exception exception) {
-                LOGGER.warn("Failed to write to USB HID device file on attempt {}.",
-                        hidDeviceWriteAttempts + 1, exception);
-            }
-            sleep(100);
-            hidDeviceWriteAttempts++;
-        }
-        if (hidDeviceWriteAttempts == hidDeviceWriteAttemptsMax) {
-            throw new IOException("USB HID device file write attempts exceeded maximum!");
-        }
-    }
-
-    /**
-     * Removes the USB HID interface via Linux GadgetFS. This method with never thrown an {@link Exception}.
-     */
-    private void removeUSBGadget() {
-        LOGGER.info("Removing USB Gadget from Linux configfs...");
-        ignoreException(() -> writeString(GADGET_UDC_PATH, ""));
-        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH + GADGET_HID_FUNCTIONS_0_NAME));
-        ignoreException(() -> removePath(GADGET_CONFIG_1_EN_STRINGS_PATH));
-        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH));
-        ignoreException(() -> removePath(GADGET_HID_FUNCTIONS_0_PATH));
-        ignoreException(() -> removePath(GADGET_EN_STRINGS_PATH));
-        ignoreException(() -> removePath(GADGET_PATH));
-        LOGGER.info("Removed USB Gadget from Linux configfs...");
-    }
-
-    /**
      * Stops {@link USBController}.
      */
     public void stop() {
@@ -249,7 +203,53 @@ public class USBController {
 
         removeUSBGadget();
 
-        LOGGER.info("Stopped USBController...");
+        LOGGER.info("Stopped USBController.");
+    }
+
+    /**
+     * Removes the USB HID interface via Linux GadgetFS. This method with never thrown an {@link Exception}.
+     */
+    private void removeUSBGadget() {
+        LOGGER.info("Removing USB Gadget from Linux configfs...");
+        ignoreException(() -> writeString(GADGET_UDC_PATH, ""));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH + GADGET_HID_FUNCTIONS_0_NAME));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_EN_STRINGS_PATH));
+        ignoreException(() -> removePath(GADGET_CONFIG_1_PATH));
+        ignoreException(() -> removePath(GADGET_HID_FUNCTIONS_0_PATH));
+        ignoreException(() -> removePath(GADGET_EN_STRINGS_PATH));
+        ignoreException(() -> removePath(GADGET_PATH));
+        LOGGER.info("Removed USB Gadget from Linux configfs.");
+    }
+
+    /**
+     * Write an {@link Report}. <code>10</code> attempts are made with a <code>100ms</code> period before giving up and
+     * throwing an {@link IOException}.
+     *
+     * @param report the {@link Report}
+     *
+     * @throws InterruptedException thrown for {@link InterruptedException}s
+     * @throws IOException          thrown for {@link IOException}s
+     */
+    public void writeReport(Report report) throws InterruptedException, IOException {
+        if (hidDeviceOutputStream == null) {
+            hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
+        }
+        final int hidDeviceWriteAttemptsMax = 10;
+        int hidDeviceWriteAttempts = 0;
+        while (hidDeviceWriteAttempts < hidDeviceWriteAttemptsMax) {
+            try {
+                hidDeviceOutputStream.write(report.toByteArray());
+                break;
+            } catch (Exception exception) {
+                LOGGER.warn("Failed to write to USB HID device file on attempt {}.",
+                        hidDeviceWriteAttempts + 1, exception);
+            }
+            sleep(100);
+            hidDeviceWriteAttempts++;
+        }
+        if (hidDeviceWriteAttempts == hidDeviceWriteAttemptsMax) {
+            throw new IOException("USB HID device file write attempts exceeded maximum!");
+        }
     }
 
     public ModelA getModelA() {

@@ -1,6 +1,8 @@
 package tech.anapad.modela.hapticsboard.lra;
 
 import tech.anapad.modela.hapticsboard.ioportexpander.IOPortExpander;
+import tech.anapad.modela.hapticsboard.lra.location.Location;
+import tech.anapad.modela.hapticsboard.lra.reference.Reference;
 
 /**
  * {@link LRA} represents an LRA on the haptics board.
@@ -9,51 +11,41 @@ public class LRA {
 
     private final IOPortExpander ioPortExpander;
     private final int portIndex;
-    private final LRAReferenceColumn referenceColumn;
-    private final LRAReferenceRow referenceRow;
-    private final double activeAreaX;
-    private final double activeAreaY;
+    private final Reference reference;
+    private final Location activeAreaLocation;
+
+    private boolean enabled;
 
     /**
      * Instantiates a new {@link LRA}.
      *
-     * @param ioPortExpander  the {@link IOPortExpander}
-     * @param portIndex       the {@link IOPortExpander} port index
-     * @param referenceColumn the {@link LRAReferenceColumn}
-     * @param referenceRow    the {@link LRAReferenceRow}
-     * @param activeAreaX     the active area X
-     * @param activeAreaY     the active area Y
+     * @param ioPortExpander     the {@link IOPortExpander}
+     * @param portIndex          the {@link IOPortExpander} port index
+     * @param reference          the {@link Reference}
+     * @param activeAreaLocation the active area {@link Location}
      */
-    public LRA(IOPortExpander ioPortExpander, int portIndex, LRAReferenceColumn referenceColumn,
-            LRAReferenceRow referenceRow, double activeAreaX, double activeAreaY) {
+    public LRA(IOPortExpander ioPortExpander, int portIndex, Reference reference, Location activeAreaLocation) {
         this.ioPortExpander = ioPortExpander;
         this.portIndex = portIndex;
-        this.referenceColumn = referenceColumn;
-        this.referenceRow = referenceRow;
-        this.activeAreaX = activeAreaX;
-        this.activeAreaY = activeAreaY;
+        this.reference = reference;
+        this.activeAreaLocation = activeAreaLocation;
+        enabled = false;
     }
 
     /**
-     * Enables this {@link LRA} by pulling its SSR gate high via the {@link IOPortExpander}.
+     * Enables or disables this {@link LRA} by pulling its SSR gate high or low via the {@link IOPortExpander}.
      *
-     * @param i2cFD the low-level I2C device file descriptor
-     *
-     * @throws Exception thrown for {@link Exception}s
-     */
-    public void enable(int i2cFD) throws Exception {
-        ioPortExpander.setOutput(i2cFD, portIndex);
-    }
-
-    /**
-     * Disables this {@link LRA} by pulling its SSR gate low via the {@link IOPortExpander}.
-     *
-     * @param i2cFD the low-level I2C device file descriptor
+     * @param enable <code>true</code> to enable, <code>false</code> otherwise
      *
      * @throws Exception thrown for {@link Exception}s
      */
-    public void disable(int i2cFD) throws Exception {
-        ioPortExpander.resetOutput(i2cFD, portIndex);
+    public void enable(boolean enable) throws Exception {
+        if (enable) {
+            ioPortExpander.setOutput(portIndex);
+        } else {
+            ioPortExpander.resetOutput(portIndex);
+        }
+        enabled = enable;
     }
 
     public IOPortExpander getIOPortExpander() {
@@ -64,19 +56,15 @@ public class LRA {
         return portIndex;
     }
 
-    public LRAReferenceColumn getReferenceColumn() {
-        return referenceColumn;
+    public Reference getReference() {
+        return reference;
     }
 
-    public LRAReferenceRow getReferenceRow() {
-        return referenceRow;
+    public Location getActiveAreaLocation() {
+        return activeAreaLocation;
     }
 
-    public double getActiveAreaX() {
-        return activeAreaX;
-    }
-
-    public double getActiveAreaY() {
-        return activeAreaY;
+    public boolean isEnabled() {
+        return enabled;
     }
 }

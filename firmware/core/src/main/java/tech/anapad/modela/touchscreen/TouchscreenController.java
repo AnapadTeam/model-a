@@ -3,19 +3,18 @@ package tech.anapad.modela.touchscreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.anapad.modela.ModelA;
+import tech.anapad.modela.touchscreen.driver.Resolution;
+import tech.anapad.modela.touchscreen.driver.Touch;
+import tech.anapad.modela.touchscreen.driver.TouchscreenDriver;
 import tech.anapad.modela.util.i2c.I2CNative;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static java.util.Collections.synchronizedList;
-import static tech.anapad.modela.util.i2c.I2CNative.readRegisterByte;
-import static tech.anapad.modela.util.i2c.I2CNative.readRegisterBytes;
-import static tech.anapad.modela.util.i2c.I2CNative.writeRegisterByte;
-import static tech.anapad.modela.util.math.BitUtil.getBit;
-import static tech.anapad.modela.util.math.BitUtil.getBits;
-import static tech.anapad.modela.util.math.MathUtil.clamp;
+import static tech.anapad.modela.touchscreen.driver.Configuration.NEW_CONFIGURATION;
 
 /**
  * {@link TouchscreenController} is a controller for the GT9110 touchscreen driver board and PCAP panel.
@@ -24,25 +23,19 @@ public class TouchscreenController implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TouchscreenController.class);
     private static final int I2C_DEVICE_INDEX = 5;
-    private static final short GT9110_I2C_ADDRESS = 0x5D;
-    private static final short GT9110_REGISTER_RESOLUTION = (short) 0x8146;
-    private static final short GT9110_REGISTER_STATUS = (short) 0x814E;
-    private static final short GT9110_REGISTER_TOUCHES_START = (short) 0x814F;
-    private static final int GT9110_TOUCH_REGISTER_LENGTH = 8; // Each touch has 8 bytes of data
-    private static final int GT9110_TOTAL_TOUCH_DATA_LENGTH = GT9110_TOUCH_REGISTER_LENGTH * 10; // 10 touches
-    private static final int MAX_READ_FAILURES = 100;
+    private static final int MAX_SAMPLE_FAILURES = 100;
 
     private final ModelA modelA;
-    private final List<Runnable> initializedListeners;
-    private final List<Runnable> failureListeners;
+    private final List<Runnable> configurationChangeListeners;
+    private final List<Consumer<Resolution>> resolutionListeners;
     private final List<Consumer<Touch[]>> touchListeners;
+    private final List<Runnable> failureListeners;
 
+    private TouchscreenDriver touchscreenDriver;
     private Thread scanThread;
     private volatile boolean scanLoop;
     private Integer i2cFD;
-    private int xResolution;
-    private int yResolution;
-    private int readFailures;
+    private int sampleFailures;
 
     /**
      * Instantiates a new {@link TouchscreenController}.
@@ -51,11 +44,12 @@ public class TouchscreenController implements Runnable {
      */
     public TouchscreenController(ModelA modelA) {
         this.modelA = modelA;
-        initializedListeners = new ArrayList<>();
+        configurationChangeListeners = synchronizedList(new ArrayList<>());
+        resolutionListeners = new ArrayList<>();
         touchListeners = synchronizedList(new ArrayList<>());
         failureListeners = synchronizedList(new ArrayList<>());
         scanLoop = false;
-        readFailures = 0;
+        sampleFailures = 0;
     }
 
     /**
@@ -70,15 +64,25 @@ public class TouchscreenController implements Runnable {
         i2cFD = I2CNative.start(I2C_DEVICE_INDEX);
         LOGGER.info("Started I2C-{}...", I2C_DEVICE_INDEX);
 
-        LOGGER.info("Reading touchscreen resolution...");
-        byte[] touchscreenResolutionBytes = readRegisterBytes(i2cFD,
-                GT9110_I2C_ADDRESS, GT9110_REGISTER_RESOLUTION, 4, false);
-        xResolution = (touchscreenResolutionBytes[1] << 8) | touchscreenResolutionBytes[0];
-        yResolution = (touchscreenResolutionBytes[3] << 8) | touchscreenResolutionBytes[2];
-        LOGGER.info("Read touchscreen resolution: {}x{}", xResolution, yResolution);
+        touchscreenDriver = new TouchscreenDriver(i2cFD);
+        LOGGER.info("Touchscreen resolution: {}x{}",
+                touchscreenDriver.getResolution().getX(), touchscreenDriver.getResolution().getY());
+
+        LOGGER.info("Checking for configuration difference...");
+        if (Arrays.equals(touchscreenDriver.readConfiguration().getBytes(), NEW_CONFIGURATION.getBytes())) {
+            LOGGER.info("No configuration differences.");
+        } else {
+            LOGGER.info("Configuration on chip is different! Programming new configuration...");
+            touchscreenDriver.writeConfiguration(NEW_CONFIGURATION);
+            LOGGER.info("Programmed new configuration. Calling configuration change listeners...");
+            configurationChangeListeners.forEach(Runnable::run);
+            LOGGER.info("Called configuration change listeners.");
+        }
 
         LOGGER.info("Calling initialized listeners...");
-        initializedListeners.forEach(Runnable::run);
+        for (Consumer<Resolution> resolutionConsumer : resolutionListeners) {
+            resolutionConsumer.accept(touchscreenDriver.getResolution());
+        }
         LOGGER.info("Called initialized listeners.");
 
         LOGGER.info("Starting scan thread...");
@@ -124,112 +128,52 @@ public class TouchscreenController implements Runnable {
         while (scanLoop) {
             // TODO implement a way to add a delay for power saving and such
 
-            // Wait until touchscreen data is ready to be read
-            byte coordinateStatusRegister = 0;
-            boolean bufferReady;
-            do {
-                try {
-                    coordinateStatusRegister = readRegisterByte(i2cFD,
-                            GT9110_I2C_ADDRESS, GT9110_REGISTER_STATUS, false);
-                    bufferReady = getBit(coordinateStatusRegister, 7) == 1;
-                    if (!scanLoop) {
-                        return;
-                    }
-                } catch (Exception ignored) {
-                    LOGGER.warn("Failed to read from status register.");
-                    readFailures++;
-                    if (checkReadFailure()) {
-                        return;
-                    }
-                    bufferReady = false;
-                }
-            } while (!bufferReady);
-
-            // Reset buffer status to trigger another touchscreen sample
+            // Sample touches and process failures
+            final Touch[] touches;
             try {
-                writeRegisterByte(i2cFD, GT9110_I2C_ADDRESS, GT9110_REGISTER_STATUS, (byte) 0, false);
-            } catch (Exception ignored) {
-                LOGGER.warn("Failed to write to status register.");
-                readFailures++;
-                if (checkReadFailure()) {
+                touches = touchscreenDriver.sampleTouches();
+            } catch (Exception exception) {
+                if (++sampleFailures > MAX_SAMPLE_FAILURES) {
+                    LOGGER.error("Sample failures exceeded {}!", MAX_SAMPLE_FAILURES);
+                    LOGGER.info("Stopping scan loop and calling failure listeners...");
+                    synchronized (failureListeners) {
+                        failureListeners.forEach(Runnable::run);
+                    }
+                    LOGGER.info("Called failure listeners.");
                     return;
+                } else {
+                    continue;
                 }
             }
-
-            // Read touchscreen touch bytes
-            final int numberOfTouches = clamp(getBits(coordinateStatusRegister, 3, 0), 0, 10);
-            final byte[] touchBytes;
-            try {
-                touchBytes = readRegisterBytes(i2cFD, GT9110_I2C_ADDRESS,
-                        GT9110_REGISTER_TOUCHES_START, GT9110_TOTAL_TOUCH_DATA_LENGTH, false);
-            } catch (Exception ignored) {
-                LOGGER.warn("Failed to read touchscreen touches.");
-                readFailures++;
-                if (checkReadFailure()) {
-                    return;
-                }
+            sampleFailures = 0;
+            if (touches == null) {
                 continue;
-            }
-
-            // Loop through touches and map to models
-            final Touch[] touches = new Touch[numberOfTouches];
-            for (int index = 0; index < touches.length; index++) {
-                final int arrayIndex = index * GT9110_TOUCH_REGISTER_LENGTH;
-                final Touch touch = new Touch();
-                touch.setID(touchBytes[arrayIndex] & 0xFF);
-                touch.setX(xResolution -
-                        (((touchBytes[arrayIndex + 2] & 0xFF) << 8) | (touchBytes[arrayIndex + 1] & 0xFF)));
-                touch.setY(yResolution -
-                        (((touchBytes[arrayIndex + 4] & 0xFF) << 8) | (touchBytes[arrayIndex + 3] & 0xFF)));
-                touch.setSize(((touchBytes[arrayIndex + 6] & 0xFF) << 8) | (touchBytes[arrayIndex + 5] & 0xFF));
-                touches[index] = touch;
             }
 
             // Call touch listeners
             synchronized (touchListeners) {
                 touchListeners.forEach(listener -> listener.accept(touches));
             }
-
-            readFailures = 0;
         }
     }
 
-    /**
-     * Checks if {@link #readFailures} exceeded {@link #MAX_READ_FAILURES} and calls the {@link #failureListeners}.
-     *
-     * @return <code>true</code> if max was exceeded, <code>false</code> otherwise
-     */
-    private boolean checkReadFailure() {
-        if (readFailures > MAX_READ_FAILURES) {
-            LOGGER.error("Read failures exceeded {}!", MAX_READ_FAILURES);
-            LOGGER.info("Stopping scan loop and calling failure listeners...");
-            synchronized (failureListeners) {
-                failureListeners.forEach(Runnable::run);
-            }
-            LOGGER.error("Called failure listeners.");
-            return true;
-        } else {
-            return false;
-        }
+    public List<Runnable> getConfigurationChangeListeners() {
+        return configurationChangeListeners;
     }
 
-    public List<Runnable> getInitializedListeners() {
-        return initializedListeners;
-    }
-
-    public List<Runnable> getFailureListeners() {
-        return failureListeners;
+    public List<Consumer<Resolution>> getResolutionListeners() {
+        return resolutionListeners;
     }
 
     public List<Consumer<Touch[]>> getTouchListeners() {
         return touchListeners;
     }
 
-    public int getXResolution() {
-        return xResolution;
+    public List<Runnable> getFailureListeners() {
+        return failureListeners;
     }
 
-    public int getYResolution() {
-        return yResolution;
+    public TouchscreenDriver getTouchscreenDriver() {
+        return touchscreenDriver;
     }
 }

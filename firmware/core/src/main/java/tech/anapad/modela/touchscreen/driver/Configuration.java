@@ -1,0 +1,219 @@
+package tech.anapad.modela.touchscreen.driver;
+
+/**
+ * {@link Configuration} hold the GT9110 touchscreen driver configuration register bytes.
+ */
+public class Configuration {
+
+    public static final Configuration NEW_CONFIGURATION;
+
+    static {
+        // The below config bytes are all the original config bytes except the ones with comments denoting changes.
+        final int[] newConfigurationBytes = new int[]{
+                0x5B, // 0x8047
+                0x00, // 0x8048 (X resolution low byte, original value multiplied by 10) (original: 0x80)
+                0x4B, // 0x8049 (X resolution high byte, original value multiplied by 10) (original: 0x07)
+                0x1E, // 0x804A (Y resolution low byte, original value multiplied by 10) (original: 0x03)
+                0x14, // 0x804B (Y resolution high byte, original value multiplied by 10) (original: 0x02)
+                0x0A, // 0x804C
+                0x3D, // 0x804D
+                0x00, // 0x804E
+                0x01, // 0x804F
+                0x0F, // 0x8050
+                0x1E, // 0x8051
+                0x0F, // 0x8052
+                0x14, // 0x8053 (Touch detect threshold) (lowered below original value for top panel) (original: 0x50)
+                0x13, // 0x8054 (Touch release threshold) (lowered below original value for top panel) (original: 0x32)
+                0x03, // 0x8055
+                0x05, // 0x8056
+                0x00, // 0x8057
+                0x00, // 0x8058
+                0x00, // 0x8059
+                0x00, // 0x805A
+                0x00, // 0x805B
+                0x00, // 0x805C
+                0x05, // 0x805D
+                0x17, // 0x805E
+                0x1A, // 0x805F
+                0x1D, // 0x8060
+                0x14, // 0x8061
+                0x95, // 0x8062
+                0x34, // 0x8063
+                0x76, // 0x8064
+                0x2B, // 0x8065
+                0x2D, // 0x8066
+                0x31, // 0x8067
+                0x0D, // 0x8068
+                0x00, // 0x8069
+                0x00, // 0x806A
+                0x00, // 0x806B
+                0xB9, // 0x806C
+                0x33, // 0x806D
+                0x2D, // 0x806E
+                0x41, // 0x806F
+                0x01, // 0x8070
+                0x00, // 0x8071
+                0x00, // 0x8072
+                0x00, // 0x8073
+                0x00, // 0x8074
+                0x00, // 0x8075
+                0x00, // 0x8076
+                0x07, // 0x8077
+                0x00, // 0x8078
+                0x00, // 0x8079
+                0x13, // 0x807A
+                0x40, // 0x807B
+                0x94, // 0x807C
+                0x45, // 0x807D
+                0x02, // 0x807E
+                0x07, // 0x807F
+                0x00, // 0x8080
+                0x00, // 0x8081
+                0x04, // 0x8082
+                0xBE, // 0x8083
+                0x15, // 0x8084
+                0x00, // 0x8085
+                0xA3, // 0x8086
+                0x1B, // 0x8087
+                0x00, // 0x8088
+                0x8E, // 0x8089
+                0x23, // 0x808A
+                0x00, // 0x808B
+                0x7E, // 0x808C
+                0x2C, // 0x808D
+                0x00, // 0x808E
+                0x70, // 0x808F
+                0x39, // 0x8090
+                0x00, // 0x8091
+                0x70, // 0x8092
+                0x00, // 0x8093
+                0x00, // 0x8094
+                0x00, // 0x8095
+                0x00, // 0x8096
+                0x00, // 0x8097
+                0x00, // 0x8098
+                0x00, // 0x8099
+                0x00, // 0x809A
+                0x00, // 0x809B
+                0x00, // 0x809C
+                0x00, // 0x809D
+                0x00, // 0x809E
+                0x00, // 0x809F
+                0x00, // 0x80A0
+                0x00, // 0x80A1
+                0x00, // 0x80A2
+                0x00, // 0x80A3
+                0x00, // 0x80A4
+                0x00, // 0x80A5
+                0x00, // 0x80A6
+                0x00, // 0x80A7
+                0x00, // 0x80A8
+                0x00, // 0x80A9
+                0x00, // 0x80AA
+                0x00, // 0x80AB
+                0x00, // 0x80AC
+                0x00, // 0x80AD
+                0x00, // 0x80AE
+                0x00, // 0x80AF
+                0x00, // 0x80B0
+                0x00, // 0x80B1
+                0x00, // 0x80B2
+                0x00, // 0x80B3
+                0x00, // 0x80B4
+                0x00, // 0x80B5
+                0x00, // 0x80B6
+                0x11, // 0x80B7
+                0x10, // 0x80B8
+                0x0F, // 0x80B9
+                0x0E, // 0x80BA
+                0x0D, // 0x80BB
+                0x0C, // 0x80BC
+                0x0B, // 0x80BD
+                0x0A, // 0x80BE
+                0x09, // 0x80BF
+                0x08, // 0x80C0
+                0x07, // 0x80C1
+                0x06, // 0x80C2
+                0x05, // 0x80C3
+                0xFF, // 0x80C4
+                0xFF, // 0x80C5
+                0xFF, // 0x80C6
+                0xFF, // 0x80C7
+                0xFF, // 0x80C8
+                0xFF, // 0x80C9
+                0xFF, // 0x80CA
+                0xFF, // 0x80CB
+                0xFF, // 0x80CC
+                0xFF, // 0x80CD
+                0xFF, // 0x80CE
+                0xFF, // 0x80CF
+                0xFF, // 0x80D0
+                0xFF, // 0x80D1
+                0xFF, // 0x80D2
+                0xFF, // 0x80D3
+                0xFF, // 0x80D4
+                0x00, // 0x80D5
+                0x01, // 0x80D6
+                0x02, // 0x80D7
+                0x03, // 0x80D8
+                0x04, // 0x80D9
+                0x05, // 0x80DA
+                0x06, // 0x80DB
+                0x07, // 0x80DC
+                0x08, // 0x80DD
+                0x09, // 0x80DE
+                0x0A, // 0x80DF
+                0x0B, // 0x80E0
+                0x0C, // 0x80E1
+                0x0D, // 0x80E2
+                0x0E, // 0x80E3
+                0x0F, // 0x80E4
+                0x10, // 0x80E5
+                0x11, // 0x80E6
+                0x12, // 0x80E7
+                0x13, // 0x80E8
+                0x14, // 0x80E9
+                0x15, // 0x80EA
+                0x16, // 0x80EB
+                0x17, // 0x80EC
+                0x18, // 0x80ED
+                0x19, // 0x80EE
+                0x1B, // 0x80EF
+                0x1C, // 0x80F0
+                0x1D, // 0x80F1
+                0x1E, // 0x80F2
+                0x1F, // 0x80F3
+                0x20, // 0x80F4
+                0x21, // 0x80F5
+                0x22, // 0x80F6
+                0x23, // 0x80F7
+                0x24, // 0x80F8
+                0x25, // 0x80F9
+                0x26, // 0x80FA
+                0x27, // 0x80FB
+                0x28, // 0x80FC
+                0x29, // 0x80FD
+                0x2A // 0x80FE
+        };
+        // Convert config ints to bytes
+        NEW_CONFIGURATION = new Configuration(new byte[newConfigurationBytes.length]);
+        for (int index = 0; index < newConfigurationBytes.length; index++) {
+            NEW_CONFIGURATION.getBytes()[index] = (byte) (newConfigurationBytes[index] & 0xFF);
+        }
+    }
+
+    private final byte[] bytes;
+
+    /**
+     * Instantiates a new {@link Configuration}.
+     *
+     * @param bytes the configuration bytes
+     */
+    public Configuration(byte[] bytes) {
+        this.bytes = bytes;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
+    }
+}
