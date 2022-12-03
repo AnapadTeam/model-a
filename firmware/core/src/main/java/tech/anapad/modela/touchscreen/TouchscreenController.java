@@ -36,7 +36,7 @@ public class TouchscreenController implements Runnable {
     private Thread sampleThread;
     private volatile boolean sampleLoop;
     private int sampleFailures;
-    private Touch[] lastTouchesSample;
+    private Touch[] latestTouches;
 
     /**
      * Instantiates a new {@link TouchscreenController}.
@@ -150,7 +150,7 @@ public class TouchscreenController implements Runnable {
             if (touches == null) {
                 continue;
             }
-            lastTouchesSample = touches;
+            latestTouches = touches;
 
             // Call touch listeners
             synchronized (touchListeners) {
@@ -160,13 +160,13 @@ public class TouchscreenController implements Runnable {
     }
 
     /**
-     * Returns <code>true</code> if the last sample of this {@link TouchscreenController} had touches,
+     * Returns <code>true</code> if the latest sample of this {@link TouchscreenController} had touches,
      * <code>false</code> otherwise.
      *
      * @return a boolean
      */
-    public boolean didLastSampleHaveTouches() {
-        return lastTouchesSample != null && lastTouchesSample.length != 0;
+    public boolean didLatestSampleHaveTouches() {
+        return latestTouches != null && latestTouches.length != 0;
     }
 
     public List<Runnable> getConfigurationChangeListeners() {
@@ -189,7 +189,7 @@ public class TouchscreenController implements Runnable {
         return touchscreenDriver;
     }
 
-    public Touch[] getLastTouchesSample() {
-        return lastTouchesSample;
+    public Touch[] getLatestTouches() {
+        return latestTouches;
     }
 }

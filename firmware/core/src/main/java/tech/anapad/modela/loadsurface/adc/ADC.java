@@ -141,6 +141,24 @@ public class ADC {
         return abs((filteredSample - baselineFilteredSample)) / NAU7802_RESULT_MAX_VALUE;
     }
 
+    /**
+     * Calls {@link LowPassFilter#getValue()} for {@link #baselineSamplesFilter}.
+     *
+     * @return a double
+     */
+    public double getLastBaselineSamplesFilterValue() {
+        return baselineSamplesFilter.getValue();
+    }
+
+    /**
+     * Calls {@link LowPassFilter#getValue()} for {@link #allSamplesFilter}.
+     *
+     * @return a double
+     */
+    public double getLastAllSamplesFilterValue() {
+        return allSamplesFilter.getValue();
+    }
+
     public int getIndex() {
         return index;
     }

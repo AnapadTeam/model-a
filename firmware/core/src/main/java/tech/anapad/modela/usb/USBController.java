@@ -222,34 +222,38 @@ public class USBController {
     }
 
     /**
-     * Write an {@link Report}. <code>10</code> attempts are made with a <code>100ms</code> period before giving up and
-     * throwing an {@link IOException}.
+     * Write an {@link Report}. <code>maxAttempts</code> attempts are made with a <code>attemptPeriodMillis</code>
+     * period before giving up and throwing an {@link IOException}.
      *
-     * @param report the {@link Report}
+     * @param report              the {@link Report}
+     * @param attemptPeriodMillis the attempt period milliseconds
+     * @param maxAttempts         the max attempts
      *
+     * @return the number of attempts it took to succeed
      * @throws InterruptedException thrown for {@link InterruptedException}s
      * @throws IOException          thrown for {@link IOException}s
      */
-    public void writeReport(Report report) throws InterruptedException, IOException {
+    public int writeReport(Report report, long attemptPeriodMillis, int maxAttempts)
+            throws InterruptedException, IOException {
         if (hidDeviceOutputStream == null) {
             hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
         }
-        final int hidDeviceWriteAttemptsMax = 10;
-        int hidDeviceWriteAttempts = 0;
-        while (hidDeviceWriteAttempts < hidDeviceWriteAttemptsMax) {
+        int attempts = 0;
+        Exception lastThrownException = null;
+        while (attempts < maxAttempts) {
             try {
                 hidDeviceOutputStream.write(report.toByteArray());
                 break;
             } catch (Exception exception) {
-                LOGGER.warn("Failed to write to USB HID device file on attempt {}.",
-                        hidDeviceWriteAttempts + 1, exception);
+                lastThrownException = exception;
             }
-            sleep(100);
-            hidDeviceWriteAttempts++;
+            sleep(attemptPeriodMillis);
+            attempts++;
         }
-        if (hidDeviceWriteAttempts == hidDeviceWriteAttemptsMax) {
-            throw new IOException("USB HID device file write attempts exceeded maximum!");
+        if (attempts == maxAttempts) {
+            throw new IOException("USB HID device file write attempts exceeded maximum!", lastThrownException);
         }
+        return attempts;
     }
 
     public ModelA getModelA() {

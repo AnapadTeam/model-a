@@ -8,9 +8,15 @@ import tech.anapad.modela.loadsurface.i2cmultiplexer.Channel;
 import tech.anapad.modela.loadsurface.i2cmultiplexer.I2CMultiplexer;
 import tech.anapad.modela.util.i2c.I2CNative;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
+import static java.util.Collections.synchronizedList;
 import static java.util.Map.of;
 import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._0;
 import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._1;
@@ -24,15 +30,20 @@ public class LoadSurfaceController implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadSurfaceController.class);
     private static final int I2C_DEVICE_INDEX = 1;
+    private static final int MAX_SAMPLE_FAILURES = 100;
 
     private final ModelA modelA;
+    private final List<Consumer<List<Double>>> percentOffsetSampleListeners;
+    private final List<CompletableFuture<List<Double>>> percentOffsetSampleFutures;
+    private final List<Runnable> failureListeners;
 
     private Integer i2cFD;
     private I2CMultiplexer i2CMultiplexer;
-    private Map<Channel, ADC> adcsOfMultiplexerChannels;
+    private Map<Channel, ADC> adcsOfChannels;
     private Thread sampleThread;
     private volatile boolean sampleLoop;
     private int sampleFailures;
+    private List<Double> latestSamples;
 
     /**
      * Instantiates a new {@link LoadSurfaceController}.
@@ -41,6 +52,9 @@ public class LoadSurfaceController implements Runnable {
      */
     public LoadSurfaceController(ModelA modelA) {
         this.modelA = modelA;
+        percentOffsetSampleListeners = synchronizedList(new ArrayList<>());
+        failureListeners = synchronizedList(new ArrayList<>());
+        percentOffsetSampleFutures = synchronizedList(new ArrayList<>());
         sampleLoop = false;
         sampleFailures = 0;
     }
@@ -63,17 +77,19 @@ public class LoadSurfaceController implements Runnable {
         LOGGER.info("Successfully tested I2C multiplexer.");
 
         LOGGER.info("Configuring ADCs...");
-        adcsOfMultiplexerChannels = new LinkedHashMap<>(of(
+        adcsOfChannels = new LinkedHashMap<>(of(
                 _0, new ADC(i2cFD, 1),
                 _1, new ADC(i2cFD, 2),
                 _2, new ADC(i2cFD, 3),
                 _3, new ADC(i2cFD, 4)));
-        for (ADC adc : adcsOfMultiplexerChannels.values()) {
-            adc.configure();
-            LOGGER.info("Configured ADC: {}", adc.getIndex());
+        for (Entry<Channel, ADC> adcOfChannel : adcsOfChannels.entrySet()) {
+            i2CMultiplexer.setChannel(adcOfChannel.getKey());
+            adcOfChannel.getValue().configure();
+            LOGGER.info("Configured ADC: {}", adcOfChannel.getValue().getIndex());
         }
-        for (ADC adc : adcsOfMultiplexerChannels.values()) {
-            adc.synchronizeSampleCycle();
+        for (Entry<Channel, ADC> adcOfChannel : adcsOfChannels.entrySet()) {
+            i2CMultiplexer.setChannel(adcOfChannel.getKey());
+            adcOfChannel.getValue().synchronizeSampleCycle();
         }
         LOGGER.info("Synchronized ADC sample cycles.");
         LOGGER.info("Configured ADCs.");
@@ -121,7 +137,63 @@ public class LoadSurfaceController implements Runnable {
         while (sampleLoop) {
             // TODO implement a way to add a delay for power saving and such
 
-            // TODO implement loop
+            // Sample ADCs
+            final List<Double> samples = new ArrayList<>();
+            for (Entry<Channel, ADC> adcOfChannel : adcsOfChannels.entrySet()) {
+                try {
+                    i2CMultiplexer.setChannel(adcOfChannel.getKey());
+                    samples.add(adcOfChannel.getValue()
+                            .samplePercentOffset(!modelA.getTouchscreenController().didLatestSampleHaveTouches()));
+                } catch (Exception exception) {
+                    if (++sampleFailures > MAX_SAMPLE_FAILURES) {
+                        LOGGER.error("Sample failures exceeded {}!", MAX_SAMPLE_FAILURES);
+                        LOGGER.info("Stopping sample loop and calling failure listeners...");
+                        synchronized (failureListeners) {
+                            failureListeners.forEach(Runnable::run);
+                        }
+                        LOGGER.info("Called failure listeners.");
+                        return;
+                    } else {
+                        continue;
+                    }
+                }
+                sampleFailures = 0;
+            }
+            latestSamples = samples;
+
+            // Call sample listeners
+            synchronized (percentOffsetSampleListeners) {
+                percentOffsetSampleListeners.forEach(listener -> listener.accept(samples));
+            }
+
+            // Call futures
+            synchronized (percentOffsetSampleFutures) {
+                percentOffsetSampleFutures.forEach(future -> future.complete(samples));
+            }
+            percentOffsetSampleFutures.clear();
         }
+    }
+
+    /**
+     * Gets a new {@link CompletableFuture} which is completed when the next percent offset sample cycle is complete.
+     *
+     * @return a {@link CompletableFuture}
+     */
+    public CompletableFuture<List<Double>> getPercentOffsetSampleFuture() {
+        final CompletableFuture<List<Double>> future = new CompletableFuture<>();
+        percentOffsetSampleFutures.add(future);
+        return future;
+    }
+
+    public List<Consumer<List<Double>>> getPercentOffsetSampleListeners() {
+        return percentOffsetSampleListeners;
+    }
+
+    public List<Runnable> getFailureListeners() {
+        return failureListeners;
+    }
+
+    public List<Double> getLatestSamples() {
+        return latestSamples;
     }
 }
