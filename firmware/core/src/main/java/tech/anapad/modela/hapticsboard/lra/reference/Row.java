@@ -9,5 +9,10 @@ public enum Row {
     _2,
     _3,
     _4,
-    _5,
+    _5;
+
+    @Override
+    public String toString() {
+        return super.toString().replace("_", "");
+    }
 }

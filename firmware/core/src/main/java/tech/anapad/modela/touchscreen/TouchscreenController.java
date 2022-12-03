@@ -31,11 +31,12 @@ public class TouchscreenController implements Runnable {
     private final List<Consumer<Touch[]>> touchListeners;
     private final List<Runnable> failureListeners;
 
-    private TouchscreenDriver touchscreenDriver;
-    private Thread scanThread;
-    private volatile boolean scanLoop;
     private Integer i2cFD;
+    private TouchscreenDriver touchscreenDriver;
+    private Thread sampleThread;
+    private volatile boolean sampleLoop;
     private int sampleFailures;
+    private Touch[] lastTouchesSample;
 
     /**
      * Instantiates a new {@link TouchscreenController}.
@@ -48,7 +49,7 @@ public class TouchscreenController implements Runnable {
         resolutionListeners = new ArrayList<>();
         touchListeners = synchronizedList(new ArrayList<>());
         failureListeners = synchronizedList(new ArrayList<>());
-        scanLoop = false;
+        sampleLoop = false;
         sampleFailures = 0;
     }
 
@@ -79,17 +80,17 @@ public class TouchscreenController implements Runnable {
             LOGGER.info("Called configuration change listeners.");
         }
 
-        LOGGER.info("Calling initialized listeners...");
+        LOGGER.info("Calling resolution listeners...");
         for (Consumer<Resolution> resolutionConsumer : resolutionListeners) {
             resolutionConsumer.accept(touchscreenDriver.getResolution());
         }
-        LOGGER.info("Called initialized listeners.");
+        LOGGER.info("Called resolution listeners.");
 
-        LOGGER.info("Starting scan thread...");
-        scanLoop = true;
-        scanThread = new Thread(this, "TouchscreenController Scan Thread");
-        scanThread.start();
-        LOGGER.info("Stopped scan thread.");
+        LOGGER.info("Starting sample thread...");
+        sampleLoop = true;
+        sampleThread = new Thread(this, "TouchscreenController Sample Thread");
+        sampleThread.start();
+        LOGGER.info("Started sample thread.");
 
         LOGGER.info("Started TouchscreenController.");
     }
@@ -102,11 +103,11 @@ public class TouchscreenController implements Runnable {
     public void stop() throws Exception {
         LOGGER.info("Stopping TouchscreenController...");
 
-        if (scanThread != null) {
-            LOGGER.info("Stopping scan thread...");
-            scanLoop = false;
-            scanThread.join(1000);
-            LOGGER.info("Stopped scan thread.");
+        if (sampleThread != null) {
+            LOGGER.info("Stopping sample thread...");
+            sampleLoop = false;
+            sampleThread.join(1000);
+            LOGGER.info("Stopped sample thread.");
         }
 
         if (i2cFD != null) {
@@ -125,7 +126,7 @@ public class TouchscreenController implements Runnable {
      */
     @Override
     public void run() {
-        while (scanLoop) {
+        while (sampleLoop) {
             // TODO implement a way to add a delay for power saving and such
 
             // Sample touches and process failures
@@ -135,7 +136,7 @@ public class TouchscreenController implements Runnable {
             } catch (Exception exception) {
                 if (++sampleFailures > MAX_SAMPLE_FAILURES) {
                     LOGGER.error("Sample failures exceeded {}!", MAX_SAMPLE_FAILURES);
-                    LOGGER.info("Stopping scan loop and calling failure listeners...");
+                    LOGGER.info("Stopping sample loop and calling failure listeners...");
                     synchronized (failureListeners) {
                         failureListeners.forEach(Runnable::run);
                     }
@@ -149,12 +150,23 @@ public class TouchscreenController implements Runnable {
             if (touches == null) {
                 continue;
             }
+            lastTouchesSample = touches;
 
             // Call touch listeners
             synchronized (touchListeners) {
                 touchListeners.forEach(listener -> listener.accept(touches));
             }
         }
+    }
+
+    /**
+     * Returns <code>true</code> if the last sample of this {@link TouchscreenController} had touches,
+     * <code>false</code> otherwise.
+     *
+     * @return a boolean
+     */
+    public boolean didLastSampleHaveTouches() {
+        return lastTouchesSample != null && lastTouchesSample.length != 0;
     }
 
     public List<Runnable> getConfigurationChangeListeners() {
@@ -175,5 +187,9 @@ public class TouchscreenController implements Runnable {
 
     public TouchscreenDriver getTouchscreenDriver() {
         return touchscreenDriver;
+    }
+
+    public Touch[] getLastTouchesSample() {
+        return lastTouchesSample;
     }
 }

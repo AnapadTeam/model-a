@@ -166,6 +166,8 @@ public class HapticsBoardController {
         LOGGER.info("Stopped HapticsBoardController.");
     }
 
+    // TODO
+
     /**
      * Gets the distances of the {@link LRA}s in the {@link #lraList} from the given {@link Location}.
      *
