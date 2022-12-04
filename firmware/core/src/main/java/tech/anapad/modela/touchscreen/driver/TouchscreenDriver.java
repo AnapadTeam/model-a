@@ -1,5 +1,8 @@
 package tech.anapad.modela.touchscreen.driver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.Arrays.copyOf;
 import static tech.anapad.modela.util.i2c.I2CNative.readRegisterByte;
 import static tech.anapad.modela.util.i2c.I2CNative.readRegisterBytes;
@@ -29,6 +32,7 @@ public class TouchscreenDriver {
     private final int i2cFD;
 
     private Resolution resolution;
+    private boolean neverSampled;
 
     /**
      * Instantiates a new {@link TouchscreenDriver}.
@@ -37,6 +41,7 @@ public class TouchscreenDriver {
      */
     public TouchscreenDriver(int i2cFD) {
         this.i2cFD = i2cFD;
+        neverSampled = true;
     }
 
     /**
@@ -107,12 +112,19 @@ public class TouchscreenDriver {
     }
 
     /**
-     * Samples the touchscreen for touches.
+     * Samples the touchscreen for touches. This also calls {@link #triggerSample()}.
      *
-     * @return the {@link Touch}es or <code>null</code> if the touchscreen is still in the process of sampling
+     * @return the {@link Touch}es {@link List} or <code>null</code> if the touchscreen is still in the process of
+     * sampling
      * @throws Exception thrown for {@link Exception}
      */
-    public Touch[] sampleTouches() throws Exception {
+    public List<Touch> sampleTouches() throws Exception {
+        // Trigger an initial sample if called for the first time
+        if (neverSampled) {
+            triggerSample();
+            neverSampled = false;
+        }
+
         // Check if touchscreen data is ready to be read
         final byte coordinateStatusRegister = readRegisterByte(i2cFD,
                 GT9110_I2C_ADDRESS, GT9110_REGISTER_STATUS, false);
@@ -121,8 +133,8 @@ public class TouchscreenDriver {
             return null;
         }
 
-        // Reset buffer status to trigger another touchscreen sample
-        writeRegisterByte(i2cFD, GT9110_I2C_ADDRESS, GT9110_REGISTER_STATUS, (byte) 0, false);
+        // Trigger another touchscreen sample
+        triggerSample();
 
         // Read touchscreen touch bytes
         final int numberOfTouches = clamp(getBits(coordinateStatusRegister, 3, 0), 0, GT9110_TOUCH_CAPACITY);
@@ -130,8 +142,8 @@ public class TouchscreenDriver {
                 GT9110_REGISTER_TOUCHES_START, GT9110_TOTAL_TOUCH_DATA_LENGTH, false);
 
         // Loop through touches
-        final Touch[] touches = new Touch[numberOfTouches];
-        for (int index = 0; index < touches.length; index++) {
+        final List<Touch> touches = new ArrayList<>(numberOfTouches);
+        for (int index = 0; index < numberOfTouches; index++) {
             final int arrayIndex = index * GT9110_TOUCH_REGISTER_LENGTH;
             final Touch touch = new Touch.Builder()
                     .id(touchBytes[arrayIndex] & 0xFF)
@@ -141,8 +153,17 @@ public class TouchscreenDriver {
                             (((touchBytes[arrayIndex + 4] & 0xFF) << 8) | (touchBytes[arrayIndex + 3] & 0xFF)))
                     .size(((touchBytes[arrayIndex + 6] & 0xFF) << 8) | (touchBytes[arrayIndex + 5] & 0xFF))
                     .build();
-            touches[index] = touch;
+            touches.add(touch);
         }
         return touches;
+    }
+
+    /**
+     * Triggers a touchscreen sample.
+     *
+     * @throws Exception thrown for {@link Exception}s
+     */
+    private void triggerSample() throws Exception {
+        writeRegisterByte(i2cFD, GT9110_I2C_ADDRESS, GT9110_REGISTER_STATUS, (byte) 0, false);
     }
 }

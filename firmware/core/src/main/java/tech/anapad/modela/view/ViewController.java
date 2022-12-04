@@ -12,6 +12,10 @@ import tech.anapad.modela.touchscreen.TouchscreenController;
 import tech.anapad.modela.touchscreen.driver.Touch;
 import tech.anapad.modela.view.debug.TouchesView;
 
+import java.util.List;
+
+import static java.lang.Math.round;
+import static java.util.stream.Collectors.toList;
 import static javafx.scene.Cursor.NONE;
 
 /**
@@ -30,11 +34,6 @@ public class ViewController {
      * The static absolute height of the view.
      */
     public static final int VIEW_HEIGHT = 515;
-
-    /**
-     * The classpath of the <code>view/image/</code> folder.
-     */
-    public static final String VIEW_IMAGE_CLASSPATH = "view/image/";
 
     private final ModelA modelA;
     private TouchscreenController touchscreenController;
@@ -96,18 +95,22 @@ public class ViewController {
     /**
      * Called to process touchscreen touches.
      *
-     * @param touches the {@link Touch}es
+     * @param touches the {@link Touch}es {@link List}
      */
-    private void processTouches(Touch[] touches) {
+    private void processTouches(List<Touch> touches) {
         // Apply touch multiplier
-        //for (Touch touch : touches) {
-        //    touch.setX((int) round((double) touch.getX() * touchXMultiplier));
-        //    touch.setY((int) round((double) touch.getY() * touchYMultiplier));
-        //}
+        final List<Touch> multipliedTouches = touches.stream()
+                .map(touch -> new Touch.Builder()
+                        .id(touch.getID())
+                        .x((int) round((double) touch.getX() * touchXMultiplier))
+                        .y((int) round((double) touch.getY() * touchYMultiplier))
+                        .size(touch.getSize())
+                        .build())
+                .collect(toList());
 
         // Pass touches to views
         if (touchesView != null) {
-            touchesView.processTouches(touches);
+            touchesView.processTouches(multipliedTouches);
         }
     }
 

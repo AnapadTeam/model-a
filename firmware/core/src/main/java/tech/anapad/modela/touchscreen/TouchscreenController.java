@@ -28,7 +28,7 @@ public class TouchscreenController implements Runnable {
     private final ModelA modelA;
     private final List<Runnable> configurationChangeListeners;
     private final List<Consumer<Resolution>> resolutionListeners;
-    private final List<Consumer<Touch[]>> touchListeners;
+    private final List<Consumer<List<Touch>>> touchListeners;
     private final List<Runnable> failureListeners;
 
     private Integer i2cFD;
@@ -36,7 +36,7 @@ public class TouchscreenController implements Runnable {
     private Thread sampleThread;
     private volatile boolean sampleLoop;
     private int sampleFailures;
-    private Touch[] latestTouches;
+    private List<Touch> latestTouches;
 
     /**
      * Instantiates a new {@link TouchscreenController}.
@@ -130,7 +130,7 @@ public class TouchscreenController implements Runnable {
             // TODO implement a way to add a delay for power saving and such
 
             // Sample touches and process failures
-            final Touch[] touches;
+            final List<Touch> touches;
             try {
                 touches = touchscreenDriver.sampleTouches();
             } catch (Exception exception) {
@@ -166,7 +166,7 @@ public class TouchscreenController implements Runnable {
      * @return a boolean
      */
     public boolean didLatestSampleHaveTouches() {
-        return latestTouches != null && latestTouches.length != 0;
+        return latestTouches != null && latestTouches.size() != 0;
     }
 
     public List<Runnable> getConfigurationChangeListeners() {
@@ -177,7 +177,7 @@ public class TouchscreenController implements Runnable {
         return resolutionListeners;
     }
 
-    public List<Consumer<Touch[]>> getTouchListeners() {
+    public List<Consumer<List<Touch>>> getTouchListeners() {
         return touchListeners;
     }
 
@@ -189,7 +189,7 @@ public class TouchscreenController implements Runnable {
         return touchscreenDriver;
     }
 
-    public Touch[] getLatestTouches() {
+    public List<Touch> getLatestTouches() {
         return latestTouches;
     }
 }

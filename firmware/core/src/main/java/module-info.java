@@ -13,5 +13,5 @@ module ModelA {
     exports tech.anapad.modela to javafx.graphics;
 
     // Resources
-    opens view.image;
+    opens logback;
 }

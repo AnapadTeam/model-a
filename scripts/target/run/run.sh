@@ -14,4 +14,4 @@ source ~/.jabba/jabba.sh
 jabba use liberica@1.14.0-2
 
 export ENABLE_GLUON_COMMERCIAL_EXTENSIONS=true
-exec "${PROJECT_ROOT_DIRECTORY}/firmware/core/build/install/modela/bin/modela" $@
+exec "${PROJECT_ROOT_DIRECTORY}/firmware/core/build/install/model-a/bin/model-a" $@

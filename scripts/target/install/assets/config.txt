@@ -22,7 +22,7 @@ hdmi_force_hotplug=1
 arm_64bit=1
 
 # Increase GPU memory
-gpu_mem=256
+gpu_mem=512
 
 # Overclock SD card from 50MHz to 100MHz
 dtoverlay=sdtweak,overclock_50=100

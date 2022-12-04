@@ -8,6 +8,8 @@ import javafx.scene.text.TextAlignment;
 import tech.anapad.modela.touchscreen.driver.Touch;
 import tech.anapad.modela.view.ViewController;
 
+import java.util.List;
+
 import static javafx.scene.paint.Color.BLACK;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
@@ -39,7 +41,7 @@ public class TouchesView {
      *
      * @param touches the {@link Touch}es
      */
-    public void processTouches(Touch[] touches) {
+    public void processTouches(List<Touch> touches) {
         // Clear canvas
         graphics.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 

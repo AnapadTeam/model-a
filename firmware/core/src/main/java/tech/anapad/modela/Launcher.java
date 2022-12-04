@@ -23,6 +23,7 @@ public class Launcher {
             return;
         }
         configureLogging(arguments);
+        logTitle();
         ModelA.arguments = arguments;
         launch(ModelA.class, cliArguments);
     }
@@ -70,5 +71,21 @@ public class Launcher {
             setProperty(CONFIG_FILE_PROPERTY, "logback/logback.development.xml");
         }
         sendSystemOutAndErrToSLF4J();
+    }
+
+    /**
+     * Prints <pre>Model A</pre> in ANSI big text to the console.
+     */
+    private static void logTitle() {
+        System.out.println("\n\n" +
+                "███    ███  ██████  ██████  ███████ ██           █████ \n" +
+                "████  ████ ██    ██ ██   ██ ██      ██          ██   ██\n" +
+                "██ ████ ██ ██    ██ ██   ██ █████   ██          ███████\n" +
+                "██  ██  ██ ██    ██ ██   ██ ██      ██          ██   ██\n" +
+                "██      ██  ██████  ██████  ███████ ███████     ██   ██" +
+                "\n" +
+                "\n" +
+                "           The the first anapad ever created           " +
+                "\n");
     }
 }

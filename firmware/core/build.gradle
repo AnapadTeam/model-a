@@ -41,7 +41,7 @@ application {
     mainModule = "ModelA"
 }
 
-applicationName = "modela"
+applicationName = "model-a"
 applicationDefaultJvmArgs = ["-XX:InitialRAMPercentage=10.0", "-XX:MaxRAMPercentage=95.0",
                              "-Dprism.verbose=true",
                              "-Dembedded=monocle", "-Dglass.platform=Monocle", "-Dmonocle.platform=EGL",

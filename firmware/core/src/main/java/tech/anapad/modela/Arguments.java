@@ -39,7 +39,7 @@ public final class Arguments {
      */
     public void parse() throws ParameterException, IllegalArgumentException {
         jCommander = JCommander.newBuilder()
-                .programName("modela")
+                .programName("model-a")
                 .addObject(this)
                 .build();
         jCommander.parse(cliArguments);
