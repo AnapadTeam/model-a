@@ -6,6 +6,9 @@ module ModelA {
     requires jcommander;
     opens tech.anapad.modela to jcommander;
 
+    // Google Guava
+    requires com.google.common;
+
     // JavaFX
     requires javafx.base;
     requires javafx.graphics;

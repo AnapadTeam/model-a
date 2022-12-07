@@ -23,7 +23,7 @@ public class Launcher {
             return;
         }
         configureLogging(arguments);
-        logTitle();
+        printTitle();
         ModelA.arguments = arguments;
         launch(ModelA.class, cliArguments);
     }
@@ -76,7 +76,7 @@ public class Launcher {
     /**
      * Prints <pre>Model A</pre> in ANSI big text to the console.
      */
-    private static void logTitle() {
+    private static void printTitle() {
         System.out.println("\n\n" +
                 "███    ███  ██████  ██████  ███████ ██           █████ \n" +
                 "████  ████ ██    ██ ██   ██ ██      ██          ██   ██\n" +

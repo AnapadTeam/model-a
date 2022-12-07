@@ -146,7 +146,7 @@ public class LoadSurfaceController implements Runnable {
                             .samplePercentOffset(!modelA.getTouchscreenController().didLatestSampleHaveTouches()));
                 } catch (Exception exception) {
                     if (++sampleFailures > MAX_SAMPLE_FAILURES) {
-                        LOGGER.error("Sample failures exceeded {}!", MAX_SAMPLE_FAILURES);
+                        LOGGER.error("Sample failures exceeded {}!", MAX_SAMPLE_FAILURES, exception);
                         LOGGER.info("Stopping sample loop and calling failure listeners...");
                         synchronized (failureListeners) {
                             failureListeners.forEach(Runnable::run);

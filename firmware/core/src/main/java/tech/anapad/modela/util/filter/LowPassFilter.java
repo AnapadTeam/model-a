@@ -1,5 +1,6 @@
 package tech.anapad.modela.util.filter;
 
+import static java.lang.Double.MAX_VALUE;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -21,6 +22,7 @@ public class LowPassFilter {
      */
     public LowPassFilter(double smoothingFactor) {
         this.smoothingFactor = smoothingFactor;
+        value = MAX_VALUE;
     }
 
     /**
@@ -33,7 +35,11 @@ public class LowPassFilter {
     public double filter(double newValue) {
         long currentMillis = currentTimeMillis();
         double elapsedMillis = currentMillis - lastTimeMillis;
-        value += elapsedMillis * (newValue - value) / smoothingFactor;
+        if (value == MAX_VALUE) {
+            value = newValue;
+        } else {
+            value += elapsedMillis * (newValue - value) / smoothingFactor;
+        }
         lastTimeMillis = currentMillis;
         return value;
     }
