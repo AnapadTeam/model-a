@@ -1,4 +1,6 @@
-package tech.anapad.modela.usb;
+package tech.anapad.modela.usb.report;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * {@link Report} is an immutable model for the USB HID report data.
@@ -10,13 +12,7 @@ public class Report {
     private byte y;
     private byte wheel;
     private byte modifier;
-    private byte reserved;
-    private byte keycode1;
-    private byte keycode2;
-    private byte keycode3;
-    private byte keycode4;
-    private byte keycode5;
-    private byte keycode6;
+    private byte[] keycodes = new byte[6];
 
     /**
      * {@link Builder} is an object builder for {@link Report}.
@@ -57,38 +53,9 @@ public class Report {
             return this;
         }
 
-        public Builder reserved(byte reserved) {
-            report.reserved = reserved;
-            return this;
-        }
-
-        public Builder keycode1(byte keycode1) {
-            report.keycode1 = keycode1;
-            return this;
-        }
-
-        public Builder keycode2(byte keycode2) {
-            report.keycode2 = keycode2;
-            return this;
-        }
-
-        public Builder keycode3(byte keycode3) {
-            report.keycode3 = keycode3;
-            return this;
-        }
-
-        public Builder keycode4(byte keycode4) {
-            report.keycode4 = keycode4;
-            return this;
-        }
-
-        public Builder keycode5(byte keycode5) {
-            report.keycode5 = keycode5;
-            return this;
-        }
-
-        public Builder keycode6(byte keycode6) {
-            report.keycode6 = keycode6;
+        public Builder keycodes(byte[] keycodes) {
+            checkArgument(keycodes != null && keycodes.length == 6);
+            report.keycodes = keycodes;
             return this;
         }
 
@@ -104,7 +71,7 @@ public class Report {
      */
     public byte[] toByteArray() {
         return new byte[]{buttons, x, y, wheel,
-                modifier, reserved, keycode1, keycode2, keycode3, keycode4, keycode5, keycode6};
+                modifier, 0, keycodes[0], keycodes[1], keycodes[2], keycodes[3], keycodes[4], keycodes[5]};
     }
 
     public byte getButtons() {
@@ -127,31 +94,7 @@ public class Report {
         return modifier;
     }
 
-    public byte getReserved() {
-        return reserved;
-    }
-
-    public byte getKeycode1() {
-        return keycode1;
-    }
-
-    public byte getKeycode2() {
-        return keycode2;
-    }
-
-    public byte getKeycode3() {
-        return keycode3;
-    }
-
-    public byte getKeycode4() {
-        return keycode4;
-    }
-
-    public byte getKeycode5() {
-        return keycode5;
-    }
-
-    public byte getKeycode6() {
-        return keycode6;
+    public byte[] getKeycodes() {
+        return keycodes;
     }
 }

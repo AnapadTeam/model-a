@@ -1,4 +1,4 @@
-package tech.anapad.modela.usb;
+package tech.anapad.modela.usb.mapping;
 
 /**
  * {@link Keycode} represents a key code from the USB HID Keyboard/Keypad usage page.
@@ -138,15 +138,7 @@ public enum Keycode {
     LOCKING_NUM_LOCK(0x0083),
     LOCKING_SCROLL_LOCK(0x0084),
     KEYPAD_COMMA(0x0085),
-    KEYPAD_EQUALS_OTHER(0x0086),
-    LEFT_CONTROL(0x00E0),
-    LEFT_SHIFT(0x00E1),
-    LEFT_ALT(0x00E2),
-    LEFT_GUI(0x00E3),
-    RIGHT_CONTROL(0x00E4),
-    RIGHT_SHIFT(0x00E5),
-    RIGHT_ALT(0x00E6),
-    RIGHT_GUI(0x00E7);
+    KEYPAD_EQUALS_OTHER(0x0086);
 
     private final byte code;
 

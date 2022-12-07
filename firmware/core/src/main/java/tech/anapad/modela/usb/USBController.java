@@ -3,11 +3,20 @@ package tech.anapad.modela.usb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.anapad.modela.ModelA;
+import tech.anapad.modela.usb.mapping.Keycode;
+import tech.anapad.modela.usb.mapping.KeycodeModifier;
+import tech.anapad.modela.usb.mapping.MouseButton;
+import tech.anapad.modela.usb.report.Report;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Thread.sleep;
+import static java.util.Arrays.fill;
+import static tech.anapad.modela.usb.mapping.Keycode.ERROR_ROLLOVER;
 import static tech.anapad.modela.util.exception.ExceptionUtil.ignoreException;
 import static tech.anapad.modela.util.file.FileUtil.exists;
 import static tech.anapad.modela.util.file.FileUtil.makePath;
@@ -17,7 +26,8 @@ import static tech.anapad.modela.util.file.FileUtil.writeBytes;
 import static tech.anapad.modela.util.file.FileUtil.writeString;
 
 /**
- * {@link USBController} is a controller for the USB HID interface and communication channel.
+ * {@link USBController} is a controller for the USB HID interface and communication channel. None of the methods in
+ * this class are thread-safe.
  */
 public class USBController {
 
@@ -38,7 +48,15 @@ public class USBController {
     private static final String GADGET_HID_DEVICE_PATH = "/dev/hidg0";
 
     private final ModelA modelA;
+
     private FileOutputStream hidDeviceOutputStream;
+
+    private Set<MouseButton> activeMouseButtons;
+    private byte nextMouseX;
+    private byte nextMouseY;
+    private byte nextMouseWheel;
+    private Set<KeycodeModifier> activeKeycodeModifiers;
+    private Set<Keycode> activeKeycodes;
 
     /**
      * Instantiates a new {@link USBController}.
@@ -47,6 +65,11 @@ public class USBController {
      */
     public USBController(ModelA modelA) {
         this.modelA = modelA;
+        activeMouseButtons = new HashSet<>();
+        nextMouseX = 0;
+        nextMouseY = 0;
+        activeKeycodeModifiers = new HashSet<>();
+        activeKeycodes = new HashSet<>();
     }
 
     /**
@@ -71,6 +94,7 @@ public class USBController {
 
         // The following USB HID report descriptor contains two usages with the first being
         // the mouse and the second being the keyboard.
+        // TODO use n-key rollover descriptor instead
         final int[] hidReportDescriptor = new int[]{
                 0x05, 0x01, // Usage Page (Generic Desktop)
                 0x09, 0x02, // Usage (Mouse)
@@ -222,19 +246,129 @@ public class USBController {
     }
 
     /**
-     * Write an {@link Report}. <code>maxAttempts</code> attempts are made with a <code>attemptPeriodMillis</code>
-     * period before giving up and throwing an {@link IOException}.
+     * Sets the active {@link MouseButton}s.
+     *
+     * @param mouseButtons   the {@link MouseButton} {@link Set}
+     * @param pressOrRelease <code>true</code> for press, <code>false</code> for release
+     */
+    public void setActiveMouseButtons(Set<MouseButton> mouseButtons, boolean pressOrRelease) {
+        checkNotNull(mouseButtons);
+        if (pressOrRelease) {
+            activeMouseButtons.addAll(mouseButtons);
+        } else {
+            activeMouseButtons.removeAll(mouseButtons);
+        }
+    }
+
+    /**
+     * Sets the mouse X, Y, and wheel movement for the next call of TODO.
+     *
+     * @param x     the X
+     * @param y     the Y
+     * @param wheel the wheel
+     */
+    public void setNextMouseMovement(byte x, byte y, byte wheel) {
+        this.nextMouseX = x;
+        this.nextMouseY = y;
+        this.nextMouseWheel = wheel;
+    }
+
+    /**
+     * Sets the active {@link KeycodeModifier}s.
+     *
+     * @param keycodeModifiers the {@link KeycodeModifier} {@link Set}
+     * @param pressOrRelease   <code>true</code> for press, <code>false</code> for release
+     */
+    public void setActiveKeycodeModifiers(Set<KeycodeModifier> keycodeModifiers, boolean pressOrRelease) {
+        checkNotNull(keycodeModifiers);
+        if (pressOrRelease) {
+            activeKeycodeModifiers.addAll(keycodeModifiers);
+        } else {
+            activeKeycodeModifiers.removeAll(keycodeModifiers);
+        }
+    }
+
+    /**
+     * Sets the active {@link Keycode}s.
+     *
+     * @param keycodes       the {@link Keycode} {@link Set}
+     * @param pressOrRelease <code>true</code> for press, <code>false</code> for release
+     */
+    public void setActiveKeycodes(Set<Keycode> keycodes, boolean pressOrRelease) {
+        checkNotNull(keycodes);
+        if (pressOrRelease) {
+            activeKeycodes.addAll(keycodes);
+        } else {
+            activeKeycodes.removeAll(keycodes);
+        }
+    }
+
+    /**
+     * Flushes the current active keyboard and mouse data to the USB host. This method also sets {@link #nextMouseX},
+     * {@link #nextMouseY}, {@link #nextMouseWheel} to <code>0</code>.
+     *
+     * @param flushAttemptPeriodMillis the flush attempt period milliseconds
+     * @param maxFlushAttempts         the flush max attempts
+     *
+     * @return the number of send attempts it took to succeed
+     * @throws Exception thrown for {@link Exception}s
+     */
+    public int flush(long flushAttemptPeriodMillis, int maxFlushAttempts) throws Exception {
+        // Construct report builder
+        final Report.Builder reportBuilder = new Report.Builder();
+
+        // Set mouse buttons
+        byte buttonsByte = 0;
+        for (MouseButton mouseButton : activeMouseButtons) {
+            buttonsByte |= mouseButton.getBitmask();
+        }
+        reportBuilder.buttons(buttonsByte);
+
+        // Set mouse movements
+        reportBuilder.x(nextMouseX);
+        nextMouseX = 0;
+        reportBuilder.y(nextMouseY);
+        nextMouseY = 0;
+        reportBuilder.wheel(nextMouseWheel);
+        nextMouseWheel = 0;
+
+        // Set keycode modifiers
+        byte keycodeModifiersByte = 0;
+        for (KeycodeModifier keycodeModifier : activeKeycodeModifiers) {
+            keycodeModifiersByte |= keycodeModifier.getBitmask();
+        }
+        reportBuilder.modifier(keycodeModifiersByte);
+
+        // Set keycodes
+        if (activeKeycodes.size() > 6) {
+            final byte[] errorKeycodes = new byte[6];
+            fill(errorKeycodes, ERROR_ROLLOVER.getCode());
+            reportBuilder.keycodes(errorKeycodes);
+        } else {
+            final byte[] keycodeBytes = new byte[6];
+            int index = 0;
+            for (Keycode keycode : activeKeycodes) {
+                keycodeBytes[index++] = keycode.getCode();
+            }
+            reportBuilder.keycodes(keycodeBytes);
+        }
+
+        // Write report
+        return writeReport(reportBuilder.build(), flushAttemptPeriodMillis, maxFlushAttempts);
+    }
+
+    /**
+     * Write a {@link Report} to the {@link #hidDeviceOutputStream}. <code>maxAttempts</code> attempts are made with a
+     * <code>attemptPeriodMillis</code> period before giving up and throwing an {@link Exception}.
      *
      * @param report              the {@link Report}
      * @param attemptPeriodMillis the attempt period milliseconds
      * @param maxAttempts         the max attempts
      *
      * @return the number of attempts it took to succeed
-     * @throws InterruptedException thrown for {@link InterruptedException}s
-     * @throws IOException          thrown for {@link IOException}s
+     * @throws Exception thrown for {@link Exception}s
      */
-    public int writeReport(Report report, long attemptPeriodMillis, int maxAttempts)
-            throws InterruptedException, IOException {
+    private int writeReport(Report report, long attemptPeriodMillis, int maxAttempts) throws Exception {
         if (hidDeviceOutputStream == null) {
             hidDeviceOutputStream = new FileOutputStream(GADGET_HID_DEVICE_PATH);
         }

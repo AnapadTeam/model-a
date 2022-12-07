@@ -1,4 +1,4 @@
-package tech.anapad.modela.usb;
+package tech.anapad.modela.usb.mapping;
 
 /**
  * {@link MouseButton} represents a mouse button from the USB HID Button usage page.
@@ -7,9 +7,9 @@ package tech.anapad.modela.usb;
  */
 public enum MouseButton {
 
-    LEFT(1 << 1),
-    RIGHT(1 << 2),
-    MIDDLE(1 << 3);
+    LEFT(1),
+    RIGHT(1 << 1),
+    MIDDLE(1 << 2);
 
     private final byte bitmask;
 
