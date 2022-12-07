@@ -6,11 +6,11 @@ import tech.anapad.modela.ModelA;
 import tech.anapad.modela.hapticsboard.hapticmotorcontroller.HapticMotorController;
 import tech.anapad.modela.hapticsboard.ioportexpander.IOPortExpander;
 import tech.anapad.modela.hapticsboard.lra.LRA;
-import tech.anapad.modela.hapticsboard.lra.location.Location;
 import tech.anapad.modela.hapticsboard.lra.reference.Column;
 import tech.anapad.modela.hapticsboard.lra.reference.Reference;
 import tech.anapad.modela.hapticsboard.lra.reference.Row;
 import tech.anapad.modela.util.i2c.I2CNative;
+import tech.anapad.modela.util.location.Location;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +20,6 @@ import static java.util.Arrays.stream;
 import static java.util.List.of;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableMap;
-import static tech.anapad.modela.hapticsboard.lra.location.Location.loc;
 import static tech.anapad.modela.hapticsboard.lra.reference.Column.A;
 import static tech.anapad.modela.hapticsboard.lra.reference.Column.B;
 import static tech.anapad.modela.hapticsboard.lra.reference.Column.C;
@@ -40,6 +39,7 @@ import static tech.anapad.modela.hapticsboard.lra.reference.Row._2;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._3;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._4;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._5;
+import static tech.anapad.modela.util.location.Location.loc;
 
 /**
  * {@link HapticsBoardController} is a controller for the haptics board.

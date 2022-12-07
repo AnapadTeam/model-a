@@ -1,7 +1,7 @@
 package tech.anapad.modela.hapticsboard.lra;
 
 import tech.anapad.modela.hapticsboard.ioportexpander.IOPortExpander;
-import tech.anapad.modela.hapticsboard.lra.location.Location;
+import tech.anapad.modela.util.location.Location;
 import tech.anapad.modela.hapticsboard.lra.reference.Reference;
 
 /**

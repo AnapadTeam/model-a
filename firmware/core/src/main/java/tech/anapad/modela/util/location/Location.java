@@ -1,12 +1,10 @@
-package tech.anapad.modela.hapticsboard.lra.location;
-
-import tech.anapad.modela.hapticsboard.lra.LRA;
+package tech.anapad.modela.util.location;
 
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
 
 /**
- * {@link Location} is an immutable model representing an {@link LRA} location.
+ * {@link Location} is an immutable model representing a location.
  */
 public class Location {
 

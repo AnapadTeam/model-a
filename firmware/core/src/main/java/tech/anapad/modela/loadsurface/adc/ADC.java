@@ -2,6 +2,7 @@ package tech.anapad.modela.loadsurface.adc;
 
 import tech.anapad.modela.hapticsboard.hapticmotorcontroller.HapticMotorController;
 import tech.anapad.modela.util.filter.LowPassFilter;
+import tech.anapad.modela.util.location.Location;
 
 import static java.lang.Math.abs;
 import static java.lang.Thread.sleep;
@@ -29,6 +30,7 @@ public class ADC {
 
     private final int i2cFD;
     private final int index;
+    private final Location loadSurfaceLocation;
     private final LowPassFilter baselineSamplesFilter;
     private final LowPassFilter allSamplesFilter;
 
@@ -37,13 +39,16 @@ public class ADC {
     /**
      * Instantiates a new {@link HapticMotorController}.
      *
-     * @param i2cFD the low-level I2C device file descriptor
+     * @param i2cFD               the low-level I2C device file descriptor
+     * @param index               the index
+     * @param loadSurfaceLocation the load surface {@link Location}
      */
-    public ADC(int i2cFD, int index) {
+    public ADC(int i2cFD, int index, Location loadSurfaceLocation) {
         this.i2cFD = i2cFD;
         this.index = index;
-        baselineSamplesFilter = new LowPassFilter(500); // TODO tune this
-        allSamplesFilter = new LowPassFilter(50); // TODO tune this
+        this.loadSurfaceLocation = loadSurfaceLocation;
+        baselineSamplesFilter = new LowPassFilter(375); // TODO tune this
+        allSamplesFilter = new LowPassFilter(75); // TODO tune this
     }
 
     /**
@@ -161,6 +166,10 @@ public class ADC {
 
     public int getIndex() {
         return index;
+    }
+
+    public Location getLoadSurfaceLocation() {
+        return loadSurfaceLocation;
     }
 
     public int getLastSample() {
