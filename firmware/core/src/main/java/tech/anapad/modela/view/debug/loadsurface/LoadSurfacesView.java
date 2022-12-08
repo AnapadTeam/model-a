@@ -1,6 +1,7 @@
 package tech.anapad.modela.view.debug.loadsurface;
 
 import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import tech.anapad.modela.loadsurface.adc.ADC;
 import tech.anapad.modela.loadsurface.sample.Sample;
@@ -17,6 +18,7 @@ import static java.lang.System.currentTimeMillis;
 import static javafx.application.Platform.runLater;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.scene.paint.Color.WHITE;
+import static javafx.scene.paint.Color.rgb;
 import static javafx.scene.text.TextAlignment.CENTER;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
@@ -26,10 +28,16 @@ import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
  */
 public class LoadSurfacesView extends AbstractView {
 
-    private final ViewController viewController;
-    private final Consumer<SampleResult> sampleResultConsumer;
+    /**
+     * The {@link Color} of pressure for these views.
+     */
+    public static final Color PRESSURE_COLOR = rgb(54, 124, 224);
 
-    private Label percentOffsetSampleAverageLabel;
+    private final ViewController viewController;
+    private final Consumer<SampleResult> sampleResultHandler;
+
+    private Rectangle averageRectangle;
+    private Label averageLabel;
     private List<LoadSurfaceView> loadSurfaceViews;
     private long lastUpdateMillis;
 
@@ -40,7 +48,7 @@ public class LoadSurfacesView extends AbstractView {
      */
     public LoadSurfacesView(ViewController viewController) {
         this.viewController = viewController;
-        sampleResultConsumer = this::handleSampleResult;
+        sampleResultHandler = this::handleSampleResult;
         nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
     }
 
@@ -48,16 +56,25 @@ public class LoadSurfacesView extends AbstractView {
     public void start() {
         nodeGroup.getChildren().add(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, BLACK));
 
-        percentOffsetSampleAverageLabel = new Label();
-        percentOffsetSampleAverageLabel.setTextFill(WHITE);
-        percentOffsetSampleAverageLabel.setTextAlignment(CENTER);
-        percentOffsetSampleAverageLabel.layoutXProperty().bind(
-                percentOffsetSampleAverageLabel.widthProperty().divide(-2));
-        percentOffsetSampleAverageLabel.layoutYProperty().bind(
-                percentOffsetSampleAverageLabel.heightProperty().divide(-2));
-        percentOffsetSampleAverageLabel.setTranslateX(VIEW_WIDTH / 2.0);
-        percentOffsetSampleAverageLabel.setTranslateY(VIEW_HEIGHT / 2.0);
-        nodeGroup.getChildren().add(percentOffsetSampleAverageLabel);
+        final double centerX = VIEW_WIDTH / 2.0;
+        final double centerY = VIEW_HEIGHT / 2.0;
+
+        averageRectangle = new Rectangle(0, 25);
+        averageRectangle.layoutXProperty().bind(averageRectangle.widthProperty().divide(-2));
+        averageRectangle.layoutYProperty().bind(averageRectangle.heightProperty().divide(-2));
+        averageRectangle.setTranslateX(centerX);
+        averageRectangle.setTranslateY(centerY);
+        averageRectangle.setFill(PRESSURE_COLOR);
+        nodeGroup.getChildren().add(averageRectangle);
+
+        averageLabel = new Label();
+        averageLabel.setTextAlignment(CENTER);
+        averageLabel.layoutXProperty().bind(averageLabel.widthProperty().divide(-2));
+        averageLabel.layoutYProperty().bind(averageLabel.heightProperty().divide(-2));
+        averageLabel.setTranslateX(centerX);
+        averageLabel.setTranslateY(centerY);
+        averageLabel.setTextFill(WHITE);
+        nodeGroup.getChildren().add(averageLabel);
 
         loadSurfaceViews = new ArrayList<>();
         for (ADC adc : viewController.getModelA().getLoadSurfaceController().getADCsOfChannels().values()) {
@@ -73,12 +90,12 @@ public class LoadSurfacesView extends AbstractView {
 
     @Override
     public void stop() {
-        viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().remove(sampleResultConsumer);
+        viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().remove(sampleResultHandler);
 
         loadSurfaceViews.forEach(LoadSurfaceView::stop);
         loadSurfaceViews = null;
 
-        percentOffsetSampleAverageLabel = null;
+        averageLabel = null;
 
         nodeGroup.getChildren().clear();
     }
@@ -93,8 +110,10 @@ public class LoadSurfacesView extends AbstractView {
         if (currentMillis - lastUpdateMillis > 50) {
             lastUpdateMillis = currentMillis;
 
-            percentOffsetSampleAverageLabel.setText(format("Average Percent Offset: %,.2f%%",
+            averageLabel.setText(format("Average Percent Offset: %,.2f%%",
                     sampleResult.getPercentOffsetSampleAverage() * 100));
+            averageRectangle.setWidth(sampleResult.getPercentOffsetSampleAverage() * 4000);
+
             for (Sample sample : sampleResult.getSamples()) {
                 loadSurfaceViews.get(sample.getIndex() - 1).update(sample);
             }

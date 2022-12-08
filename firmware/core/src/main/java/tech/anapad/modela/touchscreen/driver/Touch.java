@@ -1,9 +1,11 @@
 package tech.anapad.modela.touchscreen.driver;
 
+import static java.lang.Double.compare;
+
 /**
  * {@link Touch} is an immutable model representing a touchscreen touch.
  */
-public class Touch {
+public class Touch implements Comparable<Touch> {
 
     private int id;
     private int x;
@@ -63,6 +65,11 @@ public class Touch {
 
     public int getSize() {
         return size;
+    }
+
+    @Override
+    public int compareTo(Touch touch) {
+        return compare(id, touch.id);
     }
 
     @Override

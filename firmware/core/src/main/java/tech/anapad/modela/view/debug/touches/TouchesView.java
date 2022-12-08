@@ -14,7 +14,7 @@ import tech.anapad.modela.view.ViewController;
 
 import java.util.List;
 
-import static javafx.scene.paint.Color.BLACK;
+import static javafx.scene.paint.Color.WHITE;
 import static javafx.scene.paint.Color.gray;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.scene.paint.CycleMethod.NO_CYCLE;
@@ -49,6 +49,7 @@ public class TouchesView extends AbstractView {
      */
     public TouchesView(ViewController viewController) {
         this.viewController = viewController;
+        nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
     }
 
     @Override
@@ -92,7 +93,7 @@ public class TouchesView extends AbstractView {
             graphics.fillOval(drawX - radiusHalf, drawY - radiusHalf, radius, radius);
 
             // Draw touch number
-            graphics.setFill(BLACK);
+            graphics.setFill(WHITE);
             graphics.setTextAlign(TextAlignment.CENTER);
             graphics.setTextBaseline(VPos.BOTTOM);
             graphics.fillText(String.valueOf(touch.getID()), drawX, drawY - radiusHalf - 10);

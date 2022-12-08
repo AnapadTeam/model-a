@@ -57,6 +57,10 @@ rm -rf build/
 ./gradlew build --no-daemon
 echo "Built and installed core firmware."
 
+echo "Enabling libcomposite module..."
+modprobe libcomposite
+echo "Enabled libcomposite module."
+
 echo "Updating /boot/config.txt..."
 cd "${PROJECT_ROOT}"
 cp scripts/target/install/assets/config.txt /boot/config.txt

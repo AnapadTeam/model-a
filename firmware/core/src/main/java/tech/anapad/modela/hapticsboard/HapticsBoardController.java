@@ -13,12 +13,14 @@ import tech.anapad.modela.util.i2c.I2CNative;
 import tech.anapad.modela.util.location.Location;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.stream;
+import static java.util.Collections.unmodifiableMap;
 import static java.util.List.of;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableMap;
 import static tech.anapad.modela.hapticsboard.lra.reference.Column.A;
 import static tech.anapad.modela.hapticsboard.lra.reference.Column.B;
@@ -39,7 +41,8 @@ import static tech.anapad.modela.hapticsboard.lra.reference.Row._2;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._3;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._4;
 import static tech.anapad.modela.hapticsboard.lra.reference.Row._5;
-import static tech.anapad.modela.util.location.Location.loc;
+import static tech.anapad.modela.util.math.BitUtil.setBit;
+import static tech.anapad.modela.view.ViewController.mmLoc;
 
 /**
  * {@link HapticsBoardController} is a controller for the haptics board.
@@ -96,43 +99,51 @@ public class HapticsBoardController {
 
         // Create LRA array
         lraList = of(
-                new LRA(ioPortExpandersOfIndexes.get(1), 0, ref(A, _1), loc(10.873, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 1, ref(C, _1), loc(58.798, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 0, ref(E, _1), loc(106.724, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 0, ref(G, _1), loc(154.65, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 0, ref(I, _1), loc(202.576, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 1, ref(K, _1), loc(250.502, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 0, ref(M, _1), loc(298.427, 69.165)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 2, ref(B, _2), loc(34.836, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 1, ref(D, _2), loc(82.761, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 1, ref(F, _2), loc(130.687, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 2, ref(H, _2), loc(178.613, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 1, ref(J, _2), loc(226.539, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 2, ref(L, _2), loc(274.464, 55.33)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 3, ref(A, _3), loc(10.873, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 2, ref(C, _3), loc(58.798, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 3, ref(E, _3), loc(106.724, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 3, ref(G, _3), loc(154.65, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 3, ref(I, _3), loc(202.576, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 2, ref(K, _3), loc(250.502, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 3, ref(M, _3), loc(298.427, 41.495)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 4, ref(B, _4), loc(34.836, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 4, ref(D, _4), loc(82.761, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 4, ref(F, _4), loc(130.687, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 5, ref(H, _4), loc(178.613, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 4, ref(J, _4), loc(226.539, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 4, ref(L, _4), loc(274.464, 27.66)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 5, ref(A, _5), loc(10.873, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(1), 6, ref(C, _5), loc(58.798, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(2), 5, ref(E, _5), loc(106.724, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(3), 6, ref(G, _5), loc(154.65, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(4), 5, ref(I, _5), loc(202.576, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 6, ref(K, _5), loc(250.502, 13.825)),
-                new LRA(ioPortExpandersOfIndexes.get(5), 5, ref(M, _5), loc(298.427, 13.825)));
-        lraReferenceMap = stream(Column.values()).collect(toUnmodifiableMap(column -> column, column ->
-                stream(Row.values()).collect(toUnmodifiableMap(row -> row, row -> lraList.stream()
-                        .filter(lra -> lra.getReference().getColumn() == column && lra.getReference().getRow() == row)
-                        .findFirst().orElseThrow()))));
+                new LRA(ioPortExpandersOfIndexes.get(1), 0, ref(A, _1), mmLoc(10.873, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 1, ref(C, _1), mmLoc(58.798, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 0, ref(E, _1), mmLoc(106.724, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 0, ref(G, _1), mmLoc(154.65, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 0, ref(I, _1), mmLoc(202.576, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 1, ref(K, _1), mmLoc(250.502, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 0, ref(M, _1), mmLoc(298.427, 69.165)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 2, ref(B, _2), mmLoc(34.836, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 1, ref(D, _2), mmLoc(82.761, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 1, ref(F, _2), mmLoc(130.687, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 2, ref(H, _2), mmLoc(178.613, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 1, ref(J, _2), mmLoc(226.539, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 2, ref(L, _2), mmLoc(274.464, 55.33)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 3, ref(A, _3), mmLoc(10.873, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 2, ref(C, _3), mmLoc(58.798, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 3, ref(E, _3), mmLoc(106.724, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 3, ref(G, _3), mmLoc(154.65, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 3, ref(I, _3), mmLoc(202.576, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 2, ref(K, _3), mmLoc(250.502, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 3, ref(M, _3), mmLoc(298.427, 41.495)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 4, ref(B, _4), mmLoc(34.836, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 4, ref(D, _4), mmLoc(82.761, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 4, ref(F, _4), mmLoc(130.687, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 5, ref(H, _4), mmLoc(178.613, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 4, ref(J, _4), mmLoc(226.539, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 4, ref(L, _4), mmLoc(274.464, 27.66)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 5, ref(A, _5), mmLoc(10.873, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(1), 6, ref(C, _5), mmLoc(58.798, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(2), 5, ref(E, _5), mmLoc(106.724, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(3), 6, ref(G, _5), mmLoc(154.65, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(4), 5, ref(I, _5), mmLoc(202.576, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 6, ref(K, _5), mmLoc(250.502, 13.825)),
+                new LRA(ioPortExpandersOfIndexes.get(5), 5, ref(M, _5), mmLoc(298.427, 13.825)));
+        final Map<Column, Map<Row, LRA>> tempLRAReferenceMap = new LinkedHashMap<>();
+        for (Column column : Column.values()) {
+            tempLRAReferenceMap.put(column, new LinkedHashMap<>());
+        }
+        for (LRA lra : lraList) {
+            tempLRAReferenceMap.get(lra.getReference().getColumn()).put(lra.getReference().getRow(), lra);
+        }
+        for (Column column : Column.values()) {
+            final Map<Row, LRA> lrasOfRows = tempLRAReferenceMap.get(column);
+            tempLRAReferenceMap.put(column, unmodifiableMap(lrasOfRows));
+        }
+        lraReferenceMap = unmodifiableMap(tempLRAReferenceMap);
 
         LOGGER.info("Configuring the haptic motor controller (the DRV2605L)...");
         hapticMotorController = new HapticMotorController(i2cFD);
@@ -150,10 +161,18 @@ public class HapticsBoardController {
     public void stop() throws Exception {
         LOGGER.info("Stopping HapticsBoardController...");
 
+        if (ioPortExpanders != null) {
+            LOGGER.info("Zeroing all IO port expanders...");
+            for (IOPortExpander ioPortExpander : ioPortExpanders) {
+                ioPortExpander.zeroOutput();
+            }
+            LOGGER.info("Zeroed all IO port expanders.");
+        }
+
         if (hapticMotorController != null) {
             LOGGER.info("Stopping haptic motor controller...");
-            hapticMotorController.setRTPValue((byte) 0);
             hapticMotorController.setRTPMode(false);
+            hapticMotorController.setRTPValue((byte) 0);
             LOGGER.info("Stopped haptic motor controller.");
         }
 
@@ -166,7 +185,65 @@ public class HapticsBoardController {
         LOGGER.info("Stopped HapticsBoardController.");
     }
 
-    // TODO
+    /**
+     * Actuate the haptics board {@link LRA}s within the given <code>radius</code> of the given {@link Location}.
+     *
+     * @param location the {@link Location} to calculate the distance from
+     * @param radius   the radius that LRAs have to be in to be actuated
+     * @param rtpValue the {@link HapticMotorController#getRTPValue()}
+     *
+     * @return the {@link LRA} {@link List} containing the actuated LRAs
+     * @throws Exception thrown for {@link Exception}s
+     */
+    public List<LRA> setLRAsWithin(Location location, double radius, byte rtpValue) throws Exception {
+        // Zero out IO port expander internal output registers
+        for (IOPortExpander ioPortExpander : ioPortExpanders) {
+            ioPortExpander.setOutputRegister((byte) 0);
+        }
+
+        // Get the LRAs within the 'radius'
+        final List<LRA> lrasActuated = lraDistancesFrom(location).entrySet().stream()
+                .filter(entry -> entry.getValue() <= radius)
+                .map(Map.Entry::getKey)
+                .peek(lra -> lra.getIOPortExpander().setOutputRegister(
+                        (byte) setBit(lra.getIOPortExpander().getOutputRegister(), 1, lra.getPortIndex())))
+                .collect(toUnmodifiableList());
+
+        // Write IO port expander internal output registers
+        for (IOPortExpander ioPortExpander : ioPortExpanders) {
+            ioPortExpander.writeOutputRegister();
+        }
+
+        // Update haptic motor controller
+        hapticMotorController.setRTPValue(rtpValue);
+        if (!hapticMotorController.isRTPModeEnabled()) {
+            hapticMotorController.setRTPMode(true);
+        }
+
+        return lrasActuated;
+    }
+
+    /**
+     * Stops all the {@link LRA}s.
+     *
+     * @throws Exception thrown for {@link Exception}s
+     */
+    public void stopAllLRAs() throws Exception {
+        hapticMotorController.setRTPMode(false);
+        hapticMotorController.setRTPValue((byte) 0);
+        for (IOPortExpander ioPortExpander : ioPortExpanders) {
+            ioPortExpander.zeroOutput();
+        }
+    }
+
+    /**
+     * Returns {@link HapticMotorController#isRTPModeEnabled()}.
+     *
+     * @return <code>true</code> if LRAs are stopped, <code>false</code> otherwise
+     */
+    public boolean areLRAsStopped() {
+        return hapticMotorController.isRTPModeEnabled();
+    }
 
     /**
      * Gets the distances of the {@link LRA}s in the {@link #lraList} from the given {@link Location}.
@@ -178,7 +255,7 @@ public class HapticsBoardController {
     public Map<LRA, Double> lraDistancesFrom(Location location) {
         final Map<LRA, Double> distancesOfLRAs = new HashMap<>();
         for (LRA lra : lraList) {
-            distancesOfLRAs.put(lra, lra.getActiveAreaLocation().distance(location));
+            distancesOfLRAs.put(lra, lra.getLocation().distance(location));
         }
         return distancesOfLRAs;
     }

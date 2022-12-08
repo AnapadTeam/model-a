@@ -24,7 +24,7 @@ import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._0;
 import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._1;
 import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._2;
 import static tech.anapad.modela.loadsurface.i2cmultiplexer.Channel._3;
-import static tech.anapad.modela.util.location.Location.loc;
+import static tech.anapad.modela.view.ViewController.mmLoc;
 
 /**
  * {@link LoadSurfaceController} is a controller for the load surface array.
@@ -81,10 +81,10 @@ public class LoadSurfaceController implements Runnable {
 
         LOGGER.info("Configuring ADCs...");
         final LinkedHashMap<Channel, ADC> tempADCsOfChannels = new LinkedHashMap<>();
-        tempADCsOfChannels.put(_0, new ADC(i2cFD, 1, loc(94.752, 20.751)));
-        tempADCsOfChannels.put(_1, new ADC(i2cFD, 2, loc(214.548, 20.751)));
-        tempADCsOfChannels.put(_2, new ADC(i2cFD, 3, loc(94.752, 62.249)));
-        tempADCsOfChannels.put(_3, new ADC(i2cFD, 4, loc(214.548, 62.249)));
+        tempADCsOfChannels.put(_0, new ADC(i2cFD, 1, mmLoc(94.752, 20.751)));
+        tempADCsOfChannels.put(_1, new ADC(i2cFD, 2, mmLoc(214.548, 20.751)));
+        tempADCsOfChannels.put(_2, new ADC(i2cFD, 3, mmLoc(94.752, 62.249)));
+        tempADCsOfChannels.put(_3, new ADC(i2cFD, 4, mmLoc(214.548, 62.249)));
         adcsOfChannels = unmodifiableMap(tempADCsOfChannels);
         for (Entry<Channel, ADC> adcOfChannel : adcsOfChannels.entrySet()) {
             final Channel channel = adcOfChannel.getKey();
@@ -199,8 +199,8 @@ public class LoadSurfaceController implements Runnable {
             // Call futures
             synchronized (sampleResultFutures) {
                 sampleResultFutures.forEach(future -> future.complete(sampleResult));
+                sampleResultFutures.clear();
             }
-            sampleResultFutures.clear();
         }
     }
 

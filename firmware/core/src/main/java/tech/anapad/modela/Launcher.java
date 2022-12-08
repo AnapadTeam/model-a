@@ -74,18 +74,21 @@ public class Launcher {
     }
 
     /**
-     * Prints <pre>Model A</pre> in ANSI big text to the console.
+     * Prints <pre>Model A</pre> in standard ASCII text to the console.
+     *
+     * @see <a href="https://patorjk.com/software/taag/#p=display&f=Standard&t=Model%20A">TAAG</a>
      */
     private static void printTitle() {
         System.out.println("\n\n" +
-                "███    ███  ██████  ██████  ███████ ██           █████ \n" +
-                "████  ████ ██    ██ ██   ██ ██      ██          ██   ██\n" +
-                "██ ████ ██ ██    ██ ██   ██ █████   ██          ███████\n" +
-                "██  ██  ██ ██    ██ ██   ██ ██      ██          ██   ██\n" +
-                "██      ██  ██████  ██████  ███████ ███████     ██   ██" +
+                "          __  __           _      _      _             \n" +
+                "         |  \\/  | ___   __| | ___| |    / \\            \n" +
+                "         | |\\/| |/ _ \\ / _` |/ _ \\ |   / _ \\           \n" +
+                "         | |  | | (_) | (_| |  __/ |  / ___ \\          \n" +
+                "         |_|  |_|\\___/ \\__,_|\\___|_| /_/   \\_\\         \n" +
                 "\n" +
                 "\n" +
                 "           The the first anapad ever created           " +
+                "\n" +
                 "\n");
     }
 }

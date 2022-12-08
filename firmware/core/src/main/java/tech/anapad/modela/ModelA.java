@@ -40,12 +40,12 @@ public class ModelA extends Application {
         try {
             //usbController = new USBController(this);
             touchscreenController = new TouchscreenController(this);
-            //hapticsBoardController = new HapticsBoardController(this);
+            hapticsBoardController = new HapticsBoardController(this);
             loadSurfaceController = new LoadSurfaceController(this);
             viewController = new ViewController(this);
             //usbController.start();
             touchscreenController.start();
-            //hapticsBoardController.start();
+            hapticsBoardController.start();
             loadSurfaceController.start();
             viewController.start(stage);
         } catch (Exception exception) {

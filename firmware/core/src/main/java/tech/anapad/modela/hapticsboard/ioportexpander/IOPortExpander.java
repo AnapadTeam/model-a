@@ -74,7 +74,7 @@ public class IOPortExpander {
      *
      * @throws Exception thrown for {@link Exception}s
      */
-    private void writeOutputRegister() throws Exception {
+    public void writeOutputRegister() throws Exception {
         writeRegisterByte(i2cFD, address, TCA9534_REGISTER_OUTPUT_PORT, outputRegister, true);
     }
 
@@ -88,5 +88,9 @@ public class IOPortExpander {
 
     public byte getOutputRegister() {
         return outputRegister;
+    }
+
+    public void setOutputRegister(byte outputRegister) {
+        this.outputRegister = outputRegister;
     }
 }

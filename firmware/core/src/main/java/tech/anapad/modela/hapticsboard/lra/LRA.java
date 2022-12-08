@@ -1,13 +1,18 @@
 package tech.anapad.modela.hapticsboard.lra;
 
 import tech.anapad.modela.hapticsboard.ioportexpander.IOPortExpander;
-import tech.anapad.modela.util.location.Location;
 import tech.anapad.modela.hapticsboard.lra.reference.Reference;
+import tech.anapad.modela.util.location.Location;
 
 /**
  * {@link LRA} represents an LRA on the haptics board.
  */
 public class LRA {
+
+    /**
+     * The diameter of an {@link LRA} in millimeters.
+     */
+    public static final double DIAMETER = 8.0;
 
     private final IOPortExpander ioPortExpander;
     private final int portIndex;
@@ -60,7 +65,7 @@ public class LRA {
         return reference;
     }
 
-    public Location getActiveAreaLocation() {
+    public Location getLocation() {
         return activeAreaLocation;
     }
 

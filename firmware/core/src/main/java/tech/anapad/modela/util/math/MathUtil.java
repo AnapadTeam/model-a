@@ -20,4 +20,17 @@ public final class MathUtil {
     public static int clamp(int value, int min, int max) {
         return max(min, min(max, value));
     }
+
+    /**
+     * Clamps a double.
+     *
+     * @param value the double value to clamp
+     * @param min   the min
+     * @param max   the max
+     *
+     * @return the clamped double
+     */
+    public static double clamp(double value, double min, double max) {
+        return max(min, min(max, value));
+    }
 }

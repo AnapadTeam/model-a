@@ -155,6 +155,7 @@ public class TouchscreenDriver {
                     .build();
             touches.add(touch);
         }
+        touches.sort(Touch::compareTo);
         return touches;
     }
 
