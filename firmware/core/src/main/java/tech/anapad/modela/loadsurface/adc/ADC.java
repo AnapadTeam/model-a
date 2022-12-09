@@ -48,7 +48,7 @@ public class ADC {
         this.index = index;
         this.loadSurfaceLocation = loadSurfaceLocation;
         baselineSamplesFilter = new LowPassFilter(100);
-        allSamplesFilter = new LowPassFilter(50);
+        allSamplesFilter = new LowPassFilter(25);
     }
 
     /**

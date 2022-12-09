@@ -38,6 +38,7 @@ import static javafx.scene.Cursor.NONE;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.util.Duration.millis;
 import static tech.anapad.modela.util.location.Location.loc;
+import static tech.anapad.modela.view.util.palette.Palette.BACKGROUND_COLOR_PROPERTY;
 
 /**
  * {@link ViewController} is a controller for the view.
@@ -122,20 +123,23 @@ public class ViewController {
         nodeGroup = new Group();
         nodeGroup.setRotate(180d); // Flip view upside down
 
-        // Black background
-        nodeGroup.getChildren().add(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, BLACK));
+        // Background rectangle
+        final Rectangle backgroundRectangle = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
+        backgroundRectangle.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
+        nodeGroup.getChildren().add(backgroundRectangle);
+
+        // Create menu view
+        menuView = new MenuView(this);
+        menuView.start();
+        nodeGroup.getChildren().add(menuView.getNodeGroup());
 
         // Create menu button
         menuButton = new MenuButton(this);
         menuButton.translateXProperty().bind(menuButton.widthProperty().divide(-2).add(VIEW_WIDTH / 2.0));
-        menuButton.translateYProperty().set(2.49 * VIEW_PIXEL_DENSITY);
+        menuButton.translateYProperty().set(0.5 * VIEW_PIXEL_DENSITY);
         menuButton.setOpacity(0.0);
         menuButton.setVisible(false);
         nodeGroup.getChildren().add(menuButton);
-
-        // Create menu view
-        menuView = new MenuView();
-        menuView.start();
 
         // Create views
         touchesView = new TouchesView(this);
@@ -160,7 +164,7 @@ public class ViewController {
     private void handleSplashViewDone(ActionEvent event) {
         nodeGroup.getChildren().remove(splashView.getNodeGroup());
         menuButton.setVisible(true);
-        setActiveView(menuView);
+        setActiveView(touchesView);
     }
 
     /**
@@ -213,6 +217,7 @@ public class ViewController {
             fadeInTransition.setToValue(1.0);
             fadeInTransition.play();
         }
+        menuView.getNodeGroup().toFront();
         menuButton.toFront();
 
         final FadeTransition fadeInTransition = new FadeTransition(millis(250), newView.getNodeGroup());
@@ -244,6 +249,13 @@ public class ViewController {
         final List<Button> activeButtons = new ArrayList<>();
         if (menuButton != null) {
             activeButtons.add(menuButton);
+        }
+        if (menuView.isShowing()) {
+            for (Node node : menuView.getNodeGroup().getChildren()) {
+                if (node instanceof Button) {
+                    activeButtons.add((Button) node);
+                }
+            }
         }
         if (activeView != null) {
             for (Node node : activeView.getNodeGroup().getChildren()) {

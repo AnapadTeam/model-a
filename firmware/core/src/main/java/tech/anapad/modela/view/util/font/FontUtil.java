@@ -1,29 +1,23 @@
 package tech.anapad.modela.view.util.font;
 
+import javafx.scene.text.FontWeight;
+
+import static javafx.scene.text.Font.loadFont;
+
 /**
  * {@link FontUtil} is a utility class for fonts.
  */
 public class FontUtil {
 
-    //private static final Map<String, Font> LOADED_FONT_OF_PATHS = new HashMap<>();
-    //
-    ///**
-    // * Loads the <pre>Inter</pre> font given the font weight and size.
-    // *
-    // * @param fontWeight the {@link FontWeight}
-    // * @param size       the size
-    // *
-    // * @return the {@link Font}
-    // */
-    //public static Font interFont(FontWeight fontWeight, double size) {
-    //    final String path = "font/inter/inter-" + fontWeight.getWeight() + ".ttf";
-    //    Font font = LOADED_FONT_OF_PATHS.get(path);
-    //    if (font == null) {
-    //        font = loadFont(path, size);
-    //        LOADED_FONT_OF_PATHS.put(path, font);
-    //        return font;
-    //    } else {
-    //        return Font.font()
-    //    }
-    //}
+    public static final String INTER_FONT_FAMILY;
+
+    static {
+        // Load Inter fonts up front
+        String interFontFamily = null;
+        for (FontWeight fontWeight : FontWeight.values()) {
+            final String interFontPath = "font/inter/inter-" + fontWeight.getWeight() + ".ttf";
+            interFontFamily = loadFont(interFontPath, 12).getFamily(); // TODO fix NPE
+        }
+        INTER_FONT_FAMILY = interFontFamily;
+    }
 }

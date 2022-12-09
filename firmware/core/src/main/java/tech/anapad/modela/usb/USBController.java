@@ -92,6 +92,11 @@ public class USBController {
     private void initializeUSBGadget() throws InterruptedException, IOException {
         LOGGER.info("Initializing USB Gadget via Linux configfs...");
 
+        // Ensure USB gadget Linux module is loaded
+        if (new ProcessBuilder("modprobe", "libcomposite").start().waitFor() != 0) {
+            throw new RuntimeException("Could not run load USB gadget module!");
+        }
+
         // The following USB HID report descriptor contains two usages with the first being
         // the mouse and the second being the keyboard.
         // TODO use n-key rollover descriptor instead

@@ -9,9 +9,9 @@ import tech.anapad.modela.view.component.AbstractComponent;
  */
 public abstract class Button extends AbstractComponent {
 
-    private boolean isTouchedDown;
-    private boolean isPressedDown;
-    private boolean isForcePressedDown;
+    protected boolean isTouchedDown;
+    protected boolean isPressedDown;
+    protected boolean isForcePressedDown;
 
     /**
      * Instantiates a new {@link Button}.

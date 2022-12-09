@@ -24,6 +24,9 @@ arm_64bit=1
 # Increase GPU memory
 gpu_mem=512
 
+# Overclock SD card from 50MHz to 100MHz
+dtoverlay=sdtweak,overclock_50=100
+
 # Disable onboard EEPROM probing
 force_eeprom_read=0
 

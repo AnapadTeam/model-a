@@ -38,12 +38,12 @@ public class ModelA extends Application {
 
         LOGGER.info("Starting...");
         try {
-            //usbController = new USBController(this);
+            usbController = new USBController(this);
             touchscreenController = new TouchscreenController(this);
             hapticsBoardController = new HapticsBoardController(this);
             loadSurfaceController = new LoadSurfaceController(this);
             viewController = new ViewController(this);
-            //usbController.start();
+            usbController.start();
             touchscreenController.start();
             hapticsBoardController.start();
             loadSurfaceController.start();
