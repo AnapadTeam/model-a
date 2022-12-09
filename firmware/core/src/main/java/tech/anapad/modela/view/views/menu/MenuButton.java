@@ -22,7 +22,7 @@ public class MenuButton extends ContentButton {
      * @param viewController the {@link ViewController}
      */
     public MenuButton(ViewController viewController) {
-        super(11.103, 6.515, 4.0);
+        super(11.103, 6.515, 3.0);
         this.viewController = viewController;
 
         whiteIconImage = new Image("image/icon/white_small.png");

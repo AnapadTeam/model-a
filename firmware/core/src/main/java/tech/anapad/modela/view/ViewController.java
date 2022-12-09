@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static java.lang.Byte.MAX_VALUE;
 import static java.lang.Math.round;
 import static java.util.stream.Collectors.toList;
 import static javafx.application.Platform.runLater;
@@ -127,6 +128,13 @@ public class ViewController {
         final Rectangle backgroundRectangle = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
         backgroundRectangle.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
         nodeGroup.getChildren().add(backgroundRectangle);
+
+        // Clip rectangle
+        final Rectangle clipRectangle = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
+        final double clipRectangleRadius = 2.0 * VIEW_PIXEL_DENSITY;
+        clipRectangle.setArcWidth(clipRectangleRadius);
+        clipRectangle.setArcHeight(clipRectangleRadius);
+        nodeGroup.setClip(clipRectangle);
 
         // Create menu view
         menuView = new MenuView(this);
@@ -306,14 +314,17 @@ public class ViewController {
                         }
                         if (!button.isPressedDown() &&
                                 weightedPercentOffset > button.getPressDownThreshold()) {
+                            lraImpulse(touchLocation, 30);
                             button.onPressDown();
                         } else if (button.isPressedDown() &&
                                 weightedPercentOffset < button.getPressUpThreshold()) {
+                            lraImpulse(touchLocation, 15);
                             button.onPressUp();
                         }
                         if (!button.isForcePressedDown() &&
                                 weightedPercentOffset > button.getForcePressDownThreshold()) {
                             button.onForcePressDown();
+                            lraImpulse(touchLocation, 50);
                         } else if (button.isForcePressedDown() &&
                                 weightedPercentOffset < button.getForcePressUpThreshold()) {
                             button.onForcePressUp();
@@ -335,12 +346,19 @@ public class ViewController {
         }
 
         // Pass non-button, raw touches to required views/components
+        if (multipliedTouches.size() > 0 && multipliedTouches.size() == buttonTouches.size()) {
+            return;
+        }
         multipliedTouches.removeAll(buttonTouches);
         if (activeView == touchesView) {
             touchesView.processRawTouches(multipliedTouches);
         } else if (activeView == forceHapticsView) {
             forceHapticsView.processRawTouches(multipliedTouches);
         }
+    }
+
+    private void lraImpulse(Location location, long millis) {
+        modelA.getHapticsBoardController().scheduleLRAImpulse(location, 130.0, MAX_VALUE, 0, millis);
     }
 
     public ModelA getModelA() {

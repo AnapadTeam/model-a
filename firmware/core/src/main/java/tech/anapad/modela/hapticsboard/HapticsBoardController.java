@@ -16,9 +16,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static java.util.Collections.unmodifiableMap;
 import static java.util.List.of;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableMap;
@@ -60,6 +63,7 @@ public class HapticsBoardController {
     private List<LRA> lraList;
     private Map<Column, Map<Row, LRA>> lraReferenceMap;
     private HapticMotorController hapticMotorController;
+    private ScheduledExecutorService hapticScheduler;
 
     /**
      * Instantiates a new {@link HapticsBoardController}.
@@ -150,6 +154,10 @@ public class HapticsBoardController {
         hapticMotorController.configure();
         LOGGER.info("Configured the haptic motor controller.");
 
+        LOGGER.info("Creating haptic scheduler...");
+        hapticScheduler = newSingleThreadScheduledExecutor(runnable -> new Thread(runnable, "Haptic Scheduler"));
+        LOGGER.info("Created haptic scheduler.");
+
         LOGGER.info("Started HapticsBoardController.");
     }
 
@@ -161,12 +169,10 @@ public class HapticsBoardController {
     public void stop() throws Exception {
         LOGGER.info("Stopping HapticsBoardController...");
 
-        if (ioPortExpanders != null) {
-            LOGGER.info("Zeroing all IO port expanders...");
-            for (IOPortExpander ioPortExpander : ioPortExpanders) {
-                ioPortExpander.zeroOutput();
-            }
-            LOGGER.info("Zeroed all IO port expanders.");
+        if (hapticScheduler != null) {
+            LOGGER.info("Shutting down haptic scheduler...");
+            hapticScheduler.shutdown();
+            LOGGER.info("Shut down haptic scheduler.");
         }
 
         if (hapticMotorController != null) {
@@ -174,6 +180,14 @@ public class HapticsBoardController {
             hapticMotorController.setRTPMode(false);
             hapticMotorController.setRTPValue((byte) 0);
             LOGGER.info("Stopped haptic motor controller.");
+        }
+
+        if (ioPortExpanders != null) {
+            LOGGER.info("Zeroing all IO port expanders...");
+            for (IOPortExpander ioPortExpander : ioPortExpanders) {
+                ioPortExpander.zeroOutput();
+            }
+            LOGGER.info("Zeroed all IO port expanders.");
         }
 
         if (i2cFD != null) {
@@ -186,6 +200,33 @@ public class HapticsBoardController {
     }
 
     /**
+     * Calls {@link #setLRAsWithin(Location, double, byte)}, but after the given delay and only for the given duration.
+     *
+     * @param location       the {@link Location} to calculate the distance from
+     * @param radius         the radius that LRAs have to be in to be actuated
+     * @param rtpValue       the {@link HapticMotorController#getRTPValue()}
+     * @param delayMillis    the delay millis of the impulse
+     * @param durationMillis the duration millis of the impulse
+     */
+    public void scheduleLRAImpulse(Location location, double radius, byte rtpValue,
+            long delayMillis, long durationMillis) {
+        hapticScheduler.schedule(() -> {
+            try {
+                setLRAsWithin(location, radius, rtpValue);
+            } catch (Exception exception) {
+                LOGGER.error("Error setting LRAs within location!", exception);
+            }
+        }, delayMillis, MILLISECONDS);
+        hapticScheduler.schedule(() -> {
+            try {
+                stopAllLRAs();
+            } catch (Exception exception) {
+                LOGGER.error("Error stopping all LRAs!", exception);
+            }
+        }, delayMillis + durationMillis, MILLISECONDS);
+    }
+
+    /**
      * Actuate the haptics board {@link LRA}s within the given <code>radius</code> of the given {@link Location}.
      *
      * @param location the {@link Location} to calculate the distance from
@@ -195,7 +236,7 @@ public class HapticsBoardController {
      * @return the {@link LRA} {@link List} containing the actuated LRAs
      * @throws Exception thrown for {@link Exception}s
      */
-    public List<LRA> setLRAsWithin(Location location, double radius, byte rtpValue) throws Exception {
+    public synchronized List<LRA> setLRAsWithin(Location location, double radius, byte rtpValue) throws Exception {
         // Zero out IO port expander internal output registers
         for (IOPortExpander ioPortExpander : ioPortExpanders) {
             ioPortExpander.setOutputRegister((byte) 0);
