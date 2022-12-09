@@ -47,8 +47,8 @@ public class ADC {
         this.i2cFD = i2cFD;
         this.index = index;
         this.loadSurfaceLocation = loadSurfaceLocation;
-        baselineSamplesFilter = new LowPassFilter(375); // TODO tune this
-        allSamplesFilter = new LowPassFilter(75); // TODO tune this
+        baselineSamplesFilter = new LowPassFilter(100);
+        allSamplesFilter = new LowPassFilter(50);
     }
 
     /**
@@ -124,8 +124,8 @@ public class ADC {
     }
 
     /**
-     * Calls {@link #sample()} and filters it via {@link LowPassFilter#filter(double)} for both baseline and all samples
-     * and returns the percent off the baseline.
+     * Calls {@link #sample()} and filters it via {@link LowPassFilter#filter(double, boolean)} for both baseline and
+     * all samples and returns the percent off the baseline.
      *
      * @param applyToBaseline <code>true</code> if this sample should also apply to the baseline samples,
      *                        <code>false</code> otherwise. Baseline samples are used for differentiating between an

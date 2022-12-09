@@ -17,4 +17,6 @@ module ModelA {
 
     // Resources
     opens logback;
+    opens image.icon;
+    opens font.inter;
 }

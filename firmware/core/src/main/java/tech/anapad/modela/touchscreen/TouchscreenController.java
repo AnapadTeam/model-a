@@ -154,7 +154,13 @@ public class TouchscreenController implements Runnable {
 
             // Call touch listeners
             synchronized (touchListeners) {
-                touchListeners.forEach(listener -> listener.accept(touches));
+                for (Consumer<List<Touch>> touchListener : touchListeners) {
+                    try {
+                        touchListener.accept(touches);
+                    } catch (Exception exception) {
+                        LOGGER.error("Error calling touch listener!", exception);
+                    }
+                }
             }
         }
     }

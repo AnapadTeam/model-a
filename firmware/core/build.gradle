@@ -46,7 +46,8 @@ applicationDefaultJvmArgs = ["-XX:InitialRAMPercentage=10.0", "-XX:MaxRAMPercent
                              "-Dprism.verbose=true",
                              "-Dembedded=monocle", "-Dglass.platform=Monocle", "-Dmonocle.platform=EGL",
                              "-Dmonocle.egl.lib=/opt/java/libgluon_drm-1.1.7.so",
-                             "-Dlogging.config=logback/logback.development.xml"]
+                             "-Dlogging.config=logback/logback.development.xml",
+                             "-Dprism.lcdtext=false"]
 
 distTar.enabled = false
 distZip.enabled = false

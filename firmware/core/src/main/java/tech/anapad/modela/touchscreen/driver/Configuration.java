@@ -22,8 +22,8 @@ public class Configuration {
                 0x0F, // 0x8050
                 0x1E, // 0x8051
                 0x0F, // 0x8052
-                0x20, // 0x8053 (Touch detect threshold) (lowered below original value for top panel) (original: 0x50)
-                0x10, // 0x8054 (Touch release threshold) (lowered below original value for top panel) (original: 0x32)
+                0x24, // 0x8053 (Touch detect threshold) (lowered below original value for top panel) (original: 0x50)
+                0x17, // 0x8054 (Touch release threshold) (lowered below original value for top panel) (original: 0x32)
                 0x03, // 0x8055
                 0x05, // 0x8056
                 0x00, // 0x8057

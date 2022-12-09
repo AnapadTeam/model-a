@@ -1,4 +1,4 @@
-package tech.anapad.modela.view;
+package tech.anapad.modela.view.views;
 
 import javafx.scene.Group;
 
@@ -8,6 +8,7 @@ import javafx.scene.Group;
 public abstract class AbstractView {
 
     protected final Group nodeGroup;
+    protected boolean started;
 
     /**
      * Instantiates a new {@link AbstractView}.
@@ -19,14 +20,22 @@ public abstract class AbstractView {
     /**
      * Starts this {@link AbstractView}.
      */
-    public abstract void start();
+    public void start() {
+        started = true;
+    }
 
     /**
      * Stops this {@link AbstractView}.
      */
-    public abstract void stop();
+    public void stop() {
+        started = false;
+    }
 
     public Group getNodeGroup() {
         return nodeGroup;
+    }
+
+    public boolean isStarted() {
+        return started;
     }
 }

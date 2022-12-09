@@ -1,15 +1,15 @@
-package tech.anapad.modela.view.debug.loadsurface;
+package tech.anapad.modela.view.views.debug.loadsurface;
 
 import javafx.scene.control.Label;
 import javafx.scene.shape.Circle;
 import tech.anapad.modela.loadsurface.sample.Sample;
 import tech.anapad.modela.util.location.Location;
-import tech.anapad.modela.view.AbstractView;
+import tech.anapad.modela.view.views.AbstractView;
 
 import static java.lang.String.format;
-import static javafx.scene.paint.Color.WHITE;
 import static javafx.scene.text.TextAlignment.CENTER;
-import static tech.anapad.modela.view.debug.loadsurface.LoadSurfacesView.PRESSURE_COLOR;
+import static tech.anapad.modela.view.util.palette.Palette.TEXT_COLOR_PROPERTY;
+import static tech.anapad.modela.view.views.debug.loadsurface.LoadSurfacesView.PRESSURE_COLOR;
 
 /**
  * {@link LoadSurfaceView} represents {@link LoadSurfacesView} data.
@@ -53,8 +53,10 @@ public class LoadSurfaceView extends AbstractView {
 
     @Override
     public void start() {
+        super.start();
+
         dataLabel = new Label();
-        dataLabel.setTextFill(WHITE);
+        dataLabel.textFillProperty().bind(TEXT_COLOR_PROPERTY);
         dataLabel.setTextAlignment(CENTER);
         dataLabel.layoutXProperty().bind(dataLabel.widthProperty().divide(-2));
         dataLabel.layoutYProperty().bind(dataLabel.heightProperty().divide(-2));
@@ -66,6 +68,8 @@ public class LoadSurfaceView extends AbstractView {
 
     @Override
     public void stop() {
+        super.stop();
+
         nodeGroup.getChildren().clear();
 
         dataLabel = null;

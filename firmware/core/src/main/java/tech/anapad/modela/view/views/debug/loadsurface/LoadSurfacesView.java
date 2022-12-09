@@ -1,4 +1,4 @@
-package tech.anapad.modela.view.debug.loadsurface;
+package tech.anapad.modela.view.views.debug.loadsurface;
 
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -6,8 +6,8 @@ import javafx.scene.shape.Rectangle;
 import tech.anapad.modela.loadsurface.adc.ADC;
 import tech.anapad.modela.loadsurface.sample.Sample;
 import tech.anapad.modela.loadsurface.sample.SampleResult;
-import tech.anapad.modela.view.AbstractView;
 import tech.anapad.modela.view.ViewController;
+import tech.anapad.modela.view.views.AbstractView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static javafx.application.Platform.runLater;
-import static javafx.scene.paint.Color.BLACK;
-import static javafx.scene.paint.Color.WHITE;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.scene.text.TextAlignment.CENTER;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
+import static tech.anapad.modela.view.util.palette.Palette.BACKGROUND_COLOR_PROPERTY;
+import static tech.anapad.modela.view.util.palette.Palette.TEXT_COLOR_PROPERTY;
 
 /**
  * {@link LoadSurfacesView} is an {@link AbstractView} for viewing load surface data as a debugging measure.
@@ -48,13 +48,17 @@ public class LoadSurfacesView extends AbstractView {
      */
     public LoadSurfacesView(ViewController viewController) {
         this.viewController = viewController;
-        sampleResultHandler = this::handleSampleResult;
+        sampleResultHandler = sampleResult -> runLater(() -> handleSampleResult(sampleResult));
         nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
     }
 
     @Override
     public void start() {
-        nodeGroup.getChildren().add(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, BLACK));
+        super.start();
+
+        final Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
+        background.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
+        nodeGroup.getChildren().add(background);
 
         final double centerX = VIEW_WIDTH / 2.0;
         final double centerY = VIEW_HEIGHT / 2.0;
@@ -73,7 +77,7 @@ public class LoadSurfacesView extends AbstractView {
         averageLabel.layoutYProperty().bind(averageLabel.heightProperty().divide(-2));
         averageLabel.setTranslateX(centerX);
         averageLabel.setTranslateY(centerY);
-        averageLabel.setTextFill(WHITE);
+        averageLabel.textFillProperty().bind(TEXT_COLOR_PROPERTY);
         nodeGroup.getChildren().add(averageLabel);
 
         loadSurfaceViews = new ArrayList<>();
@@ -84,12 +88,13 @@ public class LoadSurfacesView extends AbstractView {
             nodeGroup.getChildren().add(loadSurfaceView.getNodeGroup());
         }
 
-        viewController.getModelA().getLoadSurfaceController().getSampleResultListeners()
-                .add(sampleResult -> runLater(() -> handleSampleResult(sampleResult)));
+        viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().add(sampleResultHandler);
     }
 
     @Override
     public void stop() {
+        super.stop();
+
         viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().remove(sampleResultHandler);
 
         loadSurfaceViews.forEach(LoadSurfaceView::stop);
@@ -106,6 +111,10 @@ public class LoadSurfacesView extends AbstractView {
      * @param sampleResult the {@link SampleResult}
      */
     private void handleSampleResult(SampleResult sampleResult) {
+        if (!started) {
+            return;
+        }
+
         long currentMillis = currentTimeMillis();
         if (currentMillis - lastUpdateMillis > 50) {
             lastUpdateMillis = currentMillis;

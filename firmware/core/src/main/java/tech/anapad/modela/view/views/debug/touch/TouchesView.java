@@ -1,4 +1,4 @@
-package tech.anapad.modela.view.debug.touches;
+package tech.anapad.modela.view.views.debug.touch;
 
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
@@ -9,24 +9,27 @@ import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.TextAlignment;
 import tech.anapad.modela.touchscreen.driver.Touch;
-import tech.anapad.modela.view.AbstractView;
 import tech.anapad.modela.view.ViewController;
+import tech.anapad.modela.view.views.AbstractView;
 
 import java.util.List;
 
-import static javafx.scene.paint.Color.WHITE;
 import static javafx.scene.paint.Color.gray;
 import static javafx.scene.paint.Color.rgb;
 import static javafx.scene.paint.CycleMethod.NO_CYCLE;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
+import static tech.anapad.modela.view.util.palette.Mode.LIGHT;
+import static tech.anapad.modela.view.util.palette.Palette.MODE_PROPERTY;
+import static tech.anapad.modela.view.util.palette.Palette.TEXT_COLOR_PROPERTY;
 
 /**
  * {@link TouchesView} is an {@link AbstractView} used for rendering touches on the screen as a debugging measure.
  */
 public class TouchesView extends AbstractView {
 
-    private static final Color TRANSLUCENT_WHITE = gray(1, 0.5);
+    private static final Color TRANSLUCENT_WHITE = gray(1, 0.6);
+    private static final Color TRANSLUCENT_BLACK = gray(1, 0.2);
     @SuppressWarnings("PointlessArithmeticExpression")
     private static final Stop[] LINEAR_GRADIENT_STOPS = new Stop[]{
             new Stop(0d * (1d / 3d), rgb(237, 55, 58)),
@@ -54,6 +57,8 @@ public class TouchesView extends AbstractView {
 
     @Override
     public void start() {
+        super.start();
+
         // Create nodes
         background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, LINEAR_GRADIENT);
         canvas = new Canvas(VIEW_WIDTH, VIEW_HEIGHT);
@@ -65,6 +70,8 @@ public class TouchesView extends AbstractView {
 
     @Override
     public void stop() {
+        super.stop();
+
         // Remove nodes
         nodeGroup.getChildren().removeAll(background, canvas);
 
@@ -79,21 +86,21 @@ public class TouchesView extends AbstractView {
      *
      * @param touches the {@link Touch}es
      */
-    public void processTouches(List<Touch> touches) {
+    public void processRawTouches(List<Touch> touches) {
         // Clear canvas
         graphics.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
         for (Touch touch : touches) {
             // Draw touch area
-            final double radius = touch.getSize() * 5;
+            final double radius = touch.getSize() * 10;
             final double radiusHalf = radius / 2;
             final double drawX = touch.getX();
             final double drawY = touch.getY();
-            graphics.setFill(TRANSLUCENT_WHITE);
+            graphics.setFill(MODE_PROPERTY.get() == LIGHT ? TRANSLUCENT_WHITE : TRANSLUCENT_BLACK);
             graphics.fillOval(drawX - radiusHalf, drawY - radiusHalf, radius, radius);
 
             // Draw touch number
-            graphics.setFill(WHITE);
+            graphics.setFill(TEXT_COLOR_PROPERTY.get());
             graphics.setTextAlign(TextAlignment.CENTER);
             graphics.setTextBaseline(VPos.BOTTOM);
             graphics.fillText(String.valueOf(touch.getID()), drawX, drawY - radiusHalf - 10);

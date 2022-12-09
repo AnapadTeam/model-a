@@ -96,8 +96,10 @@ public class TouchscreenDriver {
      */
     public Resolution readResolution() throws Exception {
         byte[] resolutionBytes = readRegisterBytes(i2cFD, GT9110_I2C_ADDRESS, GT9110_REGISTER_RESOLUTION, 4, false);
-        final Resolution resolution = new Resolution((resolutionBytes[1] << 8) | resolutionBytes[0],
-                (resolutionBytes[3] << 8) | resolutionBytes[2]);
+        System.out.println();
+        final Resolution resolution = new Resolution(
+                ((resolutionBytes[1] & 0xFF) << 8) | (resolutionBytes[0] & 0xFF),
+                ((resolutionBytes[3] & 0xFF) << 8) | (resolutionBytes[2] & 0xFF));
         this.resolution = resolution;
         return resolution;
     }

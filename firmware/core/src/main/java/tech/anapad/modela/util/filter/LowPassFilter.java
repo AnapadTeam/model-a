@@ -1,7 +1,6 @@
 package tech.anapad.modela.util.filter;
 
 import static java.lang.Double.MAX_VALUE;
-import static java.lang.System.currentTimeMillis;
 
 /**
  * {@link LowPassFilter} is a rate-independent, low-pass filtering algorithm.
@@ -13,7 +12,6 @@ public class LowPassFilter {
     private final double smoothingFactor;
 
     private double value;
-    private long lastTimeMillis;
 
     /**
      * Instantiates a new {@link LowPassFilter}.
@@ -33,14 +31,11 @@ public class LowPassFilter {
      * @return the filter output value (same as {@link #getValue()})
      */
     public double filter(double newValue) {
-        long currentMillis = currentTimeMillis();
-        double elapsedMillis = currentMillis - lastTimeMillis;
         if (value == MAX_VALUE) {
             value = newValue;
         } else {
-            value += elapsedMillis * (newValue - value) / smoothingFactor;
+            value += (newValue - value) / smoothingFactor;
         }
-        lastTimeMillis = currentMillis;
         return value;
     }
 

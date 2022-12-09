@@ -193,12 +193,24 @@ public class LoadSurfaceController implements Runnable {
 
             // Call sample listeners
             synchronized (sampleResultListeners) {
-                sampleResultListeners.forEach(listener -> listener.accept(sampleResult));
+                for (Consumer<SampleResult> sampleResultListener : sampleResultListeners) {
+                    try {
+                        sampleResultListener.accept(sampleResult);
+                    } catch (Exception exception) {
+                        LOGGER.error("Error calling sample result listener!", exception);
+                    }
+                }
             }
 
             // Call futures
             synchronized (sampleResultFutures) {
-                sampleResultFutures.forEach(future -> future.complete(sampleResult));
+                for (CompletableFuture<SampleResult> sampleResultFuture : sampleResultFutures) {
+                    try {
+                        sampleResultFuture.complete(sampleResult);
+                    } catch (Exception exception) {
+                        LOGGER.error("Error calling sample result future!", exception);
+                    }
+                }
                 sampleResultFutures.clear();
             }
         }

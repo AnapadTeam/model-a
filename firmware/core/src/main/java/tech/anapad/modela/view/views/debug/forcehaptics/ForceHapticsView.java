@@ -1,4 +1,4 @@
-package tech.anapad.modela.view.debug.forcehaptics;
+package tech.anapad.modela.view.views.debug.forcehaptics;
 
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
@@ -10,14 +10,14 @@ import tech.anapad.modela.hapticsboard.lra.LRA;
 import tech.anapad.modela.loadsurface.sample.SampleResult;
 import tech.anapad.modela.touchscreen.driver.Touch;
 import tech.anapad.modela.util.location.Location;
-import tech.anapad.modela.view.AbstractView;
 import tech.anapad.modela.view.ViewController;
+import tech.anapad.modela.view.views.AbstractView;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static javafx.scene.paint.Color.BLACK;
+import static javafx.geometry.Pos.BOTTOM_CENTER;
 import static javafx.scene.paint.Color.TRANSPARENT;
 import static javafx.scene.paint.Color.WHITE;
 import static javafx.scene.paint.Color.gray;
@@ -30,6 +30,7 @@ import static tech.anapad.modela.util.math.MathUtil.clamp;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_PIXEL_DENSITY;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
+import static tech.anapad.modela.view.util.palette.Palette.BACKGROUND_COLOR_PROPERTY;
 
 /**
  * {@link ForceHapticsView} is an {@link AbstractView} for viewing force sensing and haptics as a debugging measure.
@@ -37,6 +38,7 @@ import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
 public class ForceHapticsView extends AbstractView {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ForceHapticsView.class);
+    private static final Color TOUCH_CIRCLE_COLOR = gray(0.5, 0.5);
     private static final Color LRA_STATIONARY_COLOR = rgb(237, 11, 14);
     private static final Color LRA_ACTUATED_COLOR = rgb(250, 120, 10);
     private static final double LRA_ACTUATION_RADIUS = 130.0;
@@ -46,6 +48,7 @@ public class ForceHapticsView extends AbstractView {
 
     private Map<LRA, Circle> circlesOfLRAs;
     private Circle touchCircle;
+    private Label touchCircleLabel;
     private Circle forceCircle;
 
     /**
@@ -60,7 +63,11 @@ public class ForceHapticsView extends AbstractView {
 
     @Override
     public void start() {
-        nodeGroup.getChildren().add(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, BLACK));
+        super.start();
+
+        final Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
+        background.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
+        nodeGroup.getChildren().add(background);
 
         circlesOfLRAs = new HashMap<>();
         for (LRA lra : viewController.getModelA().getHapticsBoardController().getLRAList()) {
@@ -85,19 +92,35 @@ public class ForceHapticsView extends AbstractView {
         }
 
         touchCircle = new Circle(LRA_ACTUATION_RADIUS, TRANSPARENT);
-        touchCircle.setStroke(gray(0.5, 0.5));
+        touchCircle.setStroke(TOUCH_CIRCLE_COLOR);
         touchCircle.setStrokeWidth(5.0);
         touchCircle.setStrokeType(OUTSIDE);
+        touchCircle.setVisible(false);
         nodeGroup.getChildren().add(touchCircle);
 
-        forceCircle = new Circle(0, gray(0.5, 0.5));
+        touchCircleLabel = new Label();
+        touchCircleLabel.setTextFill(TOUCH_CIRCLE_COLOR);
+        touchCircleLabel.setAlignment(BOTTOM_CENTER);
+        touchCircleLabel.layoutXProperty()
+                .bind(touchCircle.centerXProperty().subtract(touchCircleLabel.widthProperty().divide(2)));
+        touchCircleLabel.layoutYProperty()
+                .bind(touchCircle.centerYProperty().subtract(touchCircle.radiusProperty()).subtract(25));
+        touchCircleLabel.setVisible(false);
+        nodeGroup.getChildren().add(touchCircleLabel);
+
+        forceCircle = new Circle(0, TOUCH_CIRCLE_COLOR);
+        forceCircle.setVisible(false);
         nodeGroup.getChildren().add(forceCircle);
     }
 
     @Override
     public void stop() {
+        super.stop();
+
         nodeGroup.getChildren().clear();
 
+        forceCircle = null;
+        touchCircleLabel = null;
         touchCircle = null;
 
         circlesOfLRAs.clear();
@@ -109,7 +132,11 @@ public class ForceHapticsView extends AbstractView {
      *
      * @param touches the {@link Touch}es
      */
-    public void processTouches(List<Touch> touches) {
+    public void processRawTouches(List<Touch> touches) {
+        if (!started) {
+            return;
+        }
+
         final SampleResult sampleResult;
         try {
             sampleResult = viewController.getModelA().getLoadSurfaceController().getPercentOffsetSampleFuture().get();
@@ -122,6 +149,7 @@ public class ForceHapticsView extends AbstractView {
             final Location touchLocation = loc(touches.get(0).getX(), touches.get(0).getY());
             if (!touchCircle.isVisible()) {
                 touchCircle.setVisible(true);
+                touchCircleLabel.setVisible(true);
                 forceCircle.setVisible(true);
             }
             touchCircle.setCenterX(touchLocation.getX());
@@ -129,13 +157,14 @@ public class ForceHapticsView extends AbstractView {
             forceCircle.setCenterX(touchLocation.getX());
             forceCircle.setCenterY(touchLocation.getY());
 
-            final double weightPercentOffsetRatio = clamp(
+            final double weightedPercentOffsetRatio = clamp(
                     sampleResult.weightedPercentOffset(touchLocation), 0, MAX_LOAD_SURFACE_PERCENT_OFFSET) /
                     MAX_LOAD_SURFACE_PERCENT_OFFSET;
-            forceCircle.setRadius(weightPercentOffsetRatio * LRA_ACTUATION_RADIUS);
+            touchCircleLabel.setText(String.format("%.0f%%", weightedPercentOffsetRatio * 100.0));
+            forceCircle.setRadius(weightedPercentOffsetRatio * LRA_ACTUATION_RADIUS);
             try {
                 final List<LRA> actuatedLRAs = viewController.getModelA().getHapticsBoardController().setLRAsWithin(
-                        touchLocation, LRA_ACTUATION_RADIUS, (byte) (weightPercentOffsetRatio * Byte.MAX_VALUE));
+                        touchLocation, LRA_ACTUATION_RADIUS, (byte) (weightedPercentOffsetRatio * Byte.MAX_VALUE));
                 for (Map.Entry<LRA, Circle> circleOfLRA : circlesOfLRAs.entrySet()) {
                     final LRA lra = circleOfLRA.getKey();
                     final Circle circle = circleOfLRA.getValue();
@@ -151,6 +180,7 @@ public class ForceHapticsView extends AbstractView {
         } else {
             if (touchCircle.isVisible()) {
                 touchCircle.setVisible(false);
+                touchCircleLabel.setVisible(false);
                 forceCircle.setVisible(false);
             }
             for (Circle lraCircle : circlesOfLRAs.values()) {
