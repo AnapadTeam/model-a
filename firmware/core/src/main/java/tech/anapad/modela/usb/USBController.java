@@ -285,7 +285,7 @@ public class USBController {
      * @param keycodeModifiers the {@link KeycodeModifier} {@link Set}
      * @param pressOrRelease   <code>true</code> for press, <code>false</code> for release
      */
-    public void setActiveKeycodeModifiers(Set<KeycodeModifier> keycodeModifiers, boolean pressOrRelease) {
+    public void updateActiveKeycodeModifiers(Set<KeycodeModifier> keycodeModifiers, boolean pressOrRelease) {
         checkNotNull(keycodeModifiers);
         if (pressOrRelease) {
             activeKeycodeModifiers.addAll(keycodeModifiers);
@@ -300,7 +300,7 @@ public class USBController {
      * @param keycodes       the {@link Keycode} {@link Set}
      * @param pressOrRelease <code>true</code> for press, <code>false</code> for release
      */
-    public void setActiveKeycodes(Set<Keycode> keycodes, boolean pressOrRelease) {
+    public void updateActiveKeycodes(Set<Keycode> keycodes, boolean pressOrRelease) {
         checkNotNull(keycodes);
         if (pressOrRelease) {
             activeKeycodes.addAll(keycodes);

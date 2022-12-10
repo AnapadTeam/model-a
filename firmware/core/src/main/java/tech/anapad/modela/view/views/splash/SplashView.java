@@ -21,6 +21,9 @@ import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
 public class SplashView extends AbstractView {
 
     private final EventHandler<ActionEvent> doneHandler;
+    private final Rectangle background;
+    private final ImageView splashImage;
+    private SequentialTransition splashImageTransition;
 
     /**
      * Instantiates a new {@link SplashView}.
@@ -29,14 +32,17 @@ public class SplashView extends AbstractView {
      */
     public SplashView(EventHandler<ActionEvent> doneHandler) {
         this.doneHandler = doneHandler;
+
+        background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, Color.BLACK);
+
+        splashImage = new ImageView("image/icon/white_splash_screen.png");
+        splashImage.setOpacity(0.0);
+
+        nodeGroup.getChildren().add(new StackPane(background, splashImage));
     }
 
     @Override
     public void start() {
-        final Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, Color.BLACK);
-
-        final ImageView splashImage = new ImageView("image/icon/white_splash_screen.png");
-        splashImage.setOpacity(0.0);
         final FadeTransition splashImageFadeIn = new FadeTransition(millis(750), splashImage);
         splashImageFadeIn.setFromValue(0.0);
         splashImageFadeIn.setToValue(1.0);
@@ -44,17 +50,16 @@ public class SplashView extends AbstractView {
         final FadeTransition splashImageFadeOut = new FadeTransition(millis(500), splashImage);
         splashImageFadeOut.setFromValue(1.0);
         splashImageFadeOut.setToValue(0.0);
-        final SequentialTransition splashImageTransition = new SequentialTransition(splashImage,
+        splashImageTransition = new SequentialTransition(splashImage,
                 splashImageFadeIn, splashImagePause, splashImageFadeOut);
-
-        nodeGroup.getChildren().add(new StackPane(background, splashImage));
-
         splashImageTransition.play();
         splashImageTransition.setOnFinished(doneHandler);
     }
 
     @Override
     public void stop() {
-        nodeGroup.getChildren().clear();
+        if (splashImageTransition != null) {
+            splashImageTransition.stop();
+        }
     }
 }

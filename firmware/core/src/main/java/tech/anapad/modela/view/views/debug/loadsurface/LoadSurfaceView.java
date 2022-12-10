@@ -16,8 +16,8 @@ import static tech.anapad.modela.view.views.debug.loadsurface.LoadSurfacesView.P
  */
 public class LoadSurfaceView extends AbstractView {
 
-    private Label dataLabel;
-    private Circle pressureCircle;
+    private final Label dataLabel;
+    private final Circle pressureCircle;
 
     /**
      * Instantiates a new {@link LoadSurfaceView}.
@@ -27,6 +27,16 @@ public class LoadSurfaceView extends AbstractView {
     public LoadSurfaceView(Location center) {
         nodeGroup.setTranslateX(center.getX());
         nodeGroup.setTranslateY(center.getY());
+
+        dataLabel = new Label();
+        dataLabel.textFillProperty().bind(TEXT_COLOR_PROPERTY);
+        dataLabel.setTextAlignment(CENTER);
+        dataLabel.layoutXProperty().bind(dataLabel.widthProperty().divide(-2));
+        dataLabel.layoutYProperty().bind(dataLabel.heightProperty().divide(-2));
+
+        pressureCircle = new Circle(0, 0, 0, PRESSURE_COLOR);
+
+        nodeGroup.getChildren().addAll(pressureCircle, dataLabel);
     }
 
     /**
@@ -49,30 +59,5 @@ public class LoadSurfaceView extends AbstractView {
         dataLabel.setText(textDataBuilder.toString());
 
         pressureCircle.setRadius(sample.getPercentOffsetSample() * 2000);
-    }
-
-    @Override
-    public void start() {
-        super.start();
-
-        dataLabel = new Label();
-        dataLabel.textFillProperty().bind(TEXT_COLOR_PROPERTY);
-        dataLabel.setTextAlignment(CENTER);
-        dataLabel.layoutXProperty().bind(dataLabel.widthProperty().divide(-2));
-        dataLabel.layoutYProperty().bind(dataLabel.heightProperty().divide(-2));
-
-        pressureCircle = new Circle(0, 0, 0, PRESSURE_COLOR);
-
-        nodeGroup.getChildren().addAll(pressureCircle, dataLabel);
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-
-        nodeGroup.getChildren().clear();
-
-        dataLabel = null;
-        pressureCircle = null;
     }
 }

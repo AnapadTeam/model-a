@@ -16,6 +16,8 @@ import tech.anapad.modela.touchscreen.driver.Touch;
 import tech.anapad.modela.util.location.Location;
 import tech.anapad.modela.view.component.button.Button;
 import tech.anapad.modela.view.views.AbstractView;
+import tech.anapad.modela.view.views.anapad.KeyboardView;
+import tech.anapad.modela.view.views.anapad.TrackpadView;
 import tech.anapad.modela.view.views.debug.forcehaptics.ForceHapticsView;
 import tech.anapad.modela.view.views.debug.loadsurface.LoadSurfacesView;
 import tech.anapad.modela.view.views.debug.touch.TouchesView;
@@ -93,6 +95,8 @@ public class ViewController {
     private SplashView splashView;
     private MenuButton menuButton;
     private MenuView menuView;
+    private KeyboardView keyboardView;
+    private TrackpadView trackpadView;
     private TouchesView touchesView;
     private LoadSurfacesView loadSurfacesView;
     private ForceHapticsView forceHapticsView;
@@ -150,6 +154,8 @@ public class ViewController {
         nodeGroup.getChildren().add(menuButton);
 
         // Create views
+        keyboardView = new KeyboardView(this);
+        trackpadView = new TrackpadView(this);
         touchesView = new TouchesView(this);
         loadSurfacesView = new LoadSurfacesView(this);
         forceHapticsView = new ForceHapticsView(this);
@@ -172,7 +178,7 @@ public class ViewController {
     private void handleSplashViewDone(ActionEvent event) {
         nodeGroup.getChildren().remove(splashView.getNodeGroup());
         menuButton.setVisible(true);
-        setActiveView(touchesView);
+        setActiveView(keyboardView);
     }
 
     /**
@@ -314,7 +320,7 @@ public class ViewController {
                         }
                         if (!button.isPressedDown() &&
                                 weightedPercentOffset > button.getPressDownThreshold()) {
-                            lraImpulse(touchLocation, 30);
+                            lraImpulse(touchLocation, 20);
                             button.onPressDown();
                         } else if (button.isPressedDown() &&
                                 weightedPercentOffset < button.getPressUpThreshold()) {
@@ -354,6 +360,8 @@ public class ViewController {
             touchesView.processRawTouches(multipliedTouches);
         } else if (activeView == forceHapticsView) {
             forceHapticsView.processRawTouches(multipliedTouches);
+        } else if (activeView == trackpadView) {
+            trackpadView.processRawTouches(multipliedTouches);
         }
     }
 
@@ -403,6 +411,14 @@ public class ViewController {
 
     public MenuView getMenuView() {
         return menuView;
+    }
+
+    public KeyboardView getKeyboardView() {
+        return keyboardView;
+    }
+
+    public TrackpadView getTrackpadView() {
+        return trackpadView;
     }
 
     public TouchesView getTouchesView() {

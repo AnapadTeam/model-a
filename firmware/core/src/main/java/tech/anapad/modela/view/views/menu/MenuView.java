@@ -32,6 +32,8 @@ public class MenuView extends AbstractView {
     public ViewController viewController;
 
     private Label demosLabel;
+    private ContentButton keyboardViewButton;
+    private ContentButton trackpadViewButton;
     private ContentButton touchesViewButton;
     private ContentButton loadSurfacesViewButton;
     private ContentButton forceHapticsViewButton;
@@ -50,11 +52,6 @@ public class MenuView extends AbstractView {
         this.viewController = viewController;
         showing = false;
         transitioning = false;
-    }
-
-    @Override
-    public void start() {
-        super.start();
 
         nodeGroup.getChildren().add(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, TRANSPARENT));
 
@@ -67,27 +64,41 @@ public class MenuView extends AbstractView {
         demosLabel = label("Demos", BOLD, 25);
         demosLabel.translateXProperty().bind(demosLabel.widthProperty().divide(-2).add(demosX));
         demosLabel.setTranslateY(20.0 * VIEW_PIXEL_DENSITY);
+        keyboardViewButton = new ContentButton(buttonWidthMm, buttonHeight, buttonArcSize,
+                label("Keyboard", NORMAL, 15), null, () -> {
+            viewController.setActiveView(viewController.getKeyboardView());
+            toggle();
+        });
+        keyboardViewButton.setTranslateX(demosX - halfButtonWidthPx);
+        keyboardViewButton.setTranslateY(30.0 * VIEW_PIXEL_DENSITY);
+        trackpadViewButton = new ContentButton(buttonWidthMm, buttonHeight, buttonArcSize,
+                label("Trackpad", NORMAL, 15), null, () -> {
+            viewController.setActiveView(viewController.getTrackpadView());
+            toggle();
+        });
+        trackpadViewButton.setTranslateX(demosX - halfButtonWidthPx);
+        trackpadViewButton.setTranslateY(40.0 * VIEW_PIXEL_DENSITY);
         touchesViewButton = new ContentButton(buttonWidthMm, buttonHeight, buttonArcSize,
                 label("Touches", NORMAL, 15), null, () -> {
             viewController.setActiveView(viewController.getTouchesView());
             toggle();
         });
         touchesViewButton.setTranslateX(demosX - halfButtonWidthPx);
-        touchesViewButton.setTranslateY(30.0 * VIEW_PIXEL_DENSITY);
+        touchesViewButton.setTranslateY(50.0 * VIEW_PIXEL_DENSITY);
         loadSurfacesViewButton = new ContentButton(buttonWidthMm, buttonHeight, buttonArcSize,
                 label("Load Surfaces", NORMAL, 15), null, () -> {
             viewController.setActiveView(viewController.getLoadSurfacesView());
             toggle();
         });
         loadSurfacesViewButton.setTranslateX(demosX - halfButtonWidthPx);
-        loadSurfacesViewButton.setTranslateY(40.0 * VIEW_PIXEL_DENSITY);
+        loadSurfacesViewButton.setTranslateY(60.0 * VIEW_PIXEL_DENSITY);
         forceHapticsViewButton = new ContentButton(buttonWidthMm, buttonHeight, buttonArcSize,
                 label("Force Haptics", NORMAL, 15), null, () -> {
             viewController.setActiveView(viewController.getForceHapticsView());
             toggle();
         });
         forceHapticsViewButton.setTranslateX(demosX - halfButtonWidthPx);
-        forceHapticsViewButton.setTranslateY(50.0 * VIEW_PIXEL_DENSITY);
+        forceHapticsViewButton.setTranslateY(70.0 * VIEW_PIXEL_DENSITY);
 
         final double themeX = VIEW_WIDTH * 0.66;
         themeLabel = label("Theme", BOLD, 25);
@@ -109,15 +120,9 @@ public class MenuView extends AbstractView {
         darkModeButton.setTranslateY(40.0 * VIEW_PIXEL_DENSITY);
 
         getNodeGroup().getChildren().addAll(demosLabel,
-                touchesViewButton, loadSurfacesViewButton, forceHapticsViewButton,
-                themeLabel, lightModeButton, darkModeButton);
+                keyboardViewButton, trackpadViewButton, touchesViewButton, loadSurfacesViewButton,
+                forceHapticsViewButton, themeLabel, lightModeButton, darkModeButton);
         getNodeGroup().setOpacity(0.0);
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-        getNodeGroup().getChildren().clear();
     }
 
     /**

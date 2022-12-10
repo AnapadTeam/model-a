@@ -40,10 +40,8 @@ public class TouchesView extends AbstractView {
             new LinearGradient(0, 0, 1, 1, true, NO_CYCLE, LINEAR_GRADIENT_STOPS);
 
     private final ViewController viewController;
-
-    private Rectangle background;
-    private Canvas canvas;
-    private GraphicsContext graphics;
+    private final Canvas canvas;
+    private final GraphicsContext graphics;
 
     /**
      * Instantiates a new {@link TouchesView}.
@@ -52,33 +50,17 @@ public class TouchesView extends AbstractView {
      */
     public TouchesView(ViewController viewController) {
         this.viewController = viewController;
-        nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
-    }
 
-    @Override
-    public void start() {
-        super.start();
+        // Set clip
+        nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
 
         // Create nodes
-        background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, LINEAR_GRADIENT);
+        Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT, LINEAR_GRADIENT);
         canvas = new Canvas(VIEW_WIDTH, VIEW_HEIGHT);
         graphics = canvas.getGraphicsContext2D();
 
         // Add nodes
         nodeGroup.getChildren().addAll(background, canvas);
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-
-        // Remove nodes
-        nodeGroup.getChildren().removeAll(background, canvas);
-
-        // Destroy nodes
-        background = null;
-        canvas = null;
-        graphics = null;
     }
 
     /**

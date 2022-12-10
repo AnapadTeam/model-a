@@ -42,14 +42,13 @@ public class ForceHapticsView extends AbstractView {
     private static final Color LRA_STATIONARY_COLOR = rgb(237, 11, 14);
     private static final Color LRA_ACTUATED_COLOR = rgb(250, 120, 10);
     private static final double LRA_ACTUATION_RADIUS = 130.0;
-    private static final double MAX_LOAD_SURFACE_PERCENT_OFFSET = 0.08;
+    private static final double MAX_LOAD_SURFACE_PERCENT_OFFSET = 0.05;
 
     private final ViewController viewController;
-
-    private Map<LRA, Circle> circlesOfLRAs;
-    private Circle touchCircle;
-    private Label touchCircleLabel;
-    private Circle forceCircle;
+    private final Map<LRA, Circle> circlesOfLRAs;
+    private final Circle touchCircle;
+    private final Label touchCircleLabel;
+    private final Circle forceCircle;
 
     /**
      * Instantiates a new {@link ForceHapticsView}.
@@ -59,11 +58,6 @@ public class ForceHapticsView extends AbstractView {
     public ForceHapticsView(ViewController viewController) {
         this.viewController = viewController;
         nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
-    }
-
-    @Override
-    public void start() {
-        super.start();
 
         final Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
         background.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
@@ -111,20 +105,6 @@ public class ForceHapticsView extends AbstractView {
         forceCircle = new Circle(0, TOUCH_CIRCLE_COLOR);
         forceCircle.setVisible(false);
         nodeGroup.getChildren().add(forceCircle);
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-
-        nodeGroup.getChildren().clear();
-
-        forceCircle = null;
-        touchCircleLabel = null;
-        touchCircle = null;
-
-        circlesOfLRAs.clear();
-        circlesOfLRAs = null;
     }
 
     /**

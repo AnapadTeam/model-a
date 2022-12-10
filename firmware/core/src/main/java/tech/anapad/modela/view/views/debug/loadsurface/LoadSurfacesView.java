@@ -35,10 +35,9 @@ public class LoadSurfacesView extends AbstractView {
 
     private final ViewController viewController;
     private final Consumer<SampleResult> sampleResultHandler;
-
-    private Rectangle averageRectangle;
-    private Label averageLabel;
-    private List<LoadSurfaceView> loadSurfaceViews;
+    private final Rectangle averageRectangle;
+    private final Label averageLabel;
+    private final List<LoadSurfaceView> loadSurfaceViews;
     private long lastUpdateMillis;
 
     /**
@@ -50,11 +49,6 @@ public class LoadSurfacesView extends AbstractView {
         this.viewController = viewController;
         sampleResultHandler = sampleResult -> runLater(() -> handleSampleResult(sampleResult));
         nodeGroup.setClip(new Rectangle(VIEW_WIDTH, VIEW_HEIGHT));
-    }
-
-    @Override
-    public void start() {
-        super.start();
 
         final Rectangle background = new Rectangle(VIEW_WIDTH, VIEW_HEIGHT);
         background.fillProperty().bind(BACKGROUND_COLOR_PROPERTY);
@@ -83,26 +77,21 @@ public class LoadSurfacesView extends AbstractView {
         loadSurfaceViews = new ArrayList<>();
         for (ADC adc : viewController.getModelA().getLoadSurfaceController().getADCsOfChannels().values()) {
             final LoadSurfaceView loadSurfaceView = new LoadSurfaceView(adc.getLoadSurfaceLocation());
-            loadSurfaceView.start();
             loadSurfaceViews.add(loadSurfaceView);
             nodeGroup.getChildren().add(loadSurfaceView.getNodeGroup());
         }
+    }
 
+    @Override
+    public void start() {
+        super.start();
         viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().add(sampleResultHandler);
     }
 
     @Override
     public void stop() {
         super.stop();
-
         viewController.getModelA().getLoadSurfaceController().getSampleResultListeners().remove(sampleResultHandler);
-
-        loadSurfaceViews.forEach(LoadSurfaceView::stop);
-        loadSurfaceViews = null;
-
-        averageLabel = null;
-
-        nodeGroup.getChildren().clear();
     }
 
     /**

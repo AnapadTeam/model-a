@@ -82,7 +82,7 @@ public abstract class Button extends AbstractComponent {
      * @return a double
      */
     public double getPressDownThreshold() {
-        return 0.04;
+        return 0.003;
     }
 
     /**
@@ -92,7 +92,7 @@ public abstract class Button extends AbstractComponent {
      * @return a double
      */
     public double getPressUpThreshold() {
-        return 0.03;
+        return 0.0015;
     }
 
     /**
