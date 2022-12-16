@@ -57,15 +57,20 @@ rm -rf build/
 ./gradlew build --no-daemon
 echo "Built and installed core firmware."
 
-echo "Enabling libcomposite module..."
-modprobe libcomposite
-echo "Enabled libcomposite module."
-
 echo "Updating /boot/config.txt..."
 cd "${PROJECT_ROOT}"
 cp scripts/target/install/assets/config.txt /boot/config.txt
 chmod 755 /boot/config.txt
 echo "Updated /boot/config.txt."
+
+echo "Enabling I2C module for next boot..."
+set +e
+grep -q "i2c-dev" "/etc/modules"
+if [[ $? == 1 ]]; then
+    echo "i2c-dev" >> /etc/modules
+fi
+set -e
+echo "Enabled I2C module for next boot."
 
 echo "Disabling boot messages and login prompt..."
 set +e
