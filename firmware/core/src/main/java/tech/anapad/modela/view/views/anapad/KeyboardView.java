@@ -3,14 +3,17 @@ package tech.anapad.modela.view.views.anapad;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.shape.Rectangle;
+import tech.anapad.modela.touchscreen.driver.Touch;
 import tech.anapad.modela.usb.mapping.Keycode;
 import tech.anapad.modela.usb.mapping.KeycodeModifier;
+import tech.anapad.modela.util.location.Location;
 import tech.anapad.modela.view.ViewController;
 import tech.anapad.modela.view.views.AbstractView;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static tech.anapad.modela.util.location.Location.loc;
 import static tech.anapad.modela.view.ViewController.VIEW_HEIGHT;
 import static tech.anapad.modela.view.ViewController.VIEW_WIDTH;
 import static tech.anapad.modela.view.util.palette.Palette.BACKGROUND_COLOR_PROPERTY;
@@ -24,6 +27,8 @@ public class KeyboardView extends AbstractView {
     private final ViewController viewController;
     private final ImageView keyboardLowercaseImage;
     private final ImageView keyboardUppercaseImage;
+
+    private Location initialRawTouchLocation;
 
     /**
      * Instantiates a new {@link KeyboardView}.
@@ -146,6 +151,24 @@ public class KeyboardView extends AbstractView {
     @Override
     public void stop() {
         super.stop();
+    }
+
+    /**
+     * Called to process touchscreen touches.
+     *
+     * @param touches the {@link Touch}es
+     */
+    public void processRawTouches(List<Touch> touches) {
+        if (touches.size() == 1) {
+            final Touch touch = touches.get(0);
+            final Location touchLocation = loc(touch.getX(), touch.getY());
+            if (initialRawTouchLocation == null) {
+                initialRawTouchLocation = touchLocation;
+            } else if (initialRawTouchLocation.distance(touchLocation) > 4) {
+                initialRawTouchLocation = null;
+                viewController.setActiveView(viewController.getTrackpadView());
+            }
+        }
     }
 
     public void toggleVisibleCases() {

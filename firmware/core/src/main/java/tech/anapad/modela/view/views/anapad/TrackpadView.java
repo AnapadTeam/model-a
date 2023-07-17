@@ -26,6 +26,8 @@ import static tech.anapad.modela.view.util.palette.Palette.FOREGROUND_COLOR_PROP
  */
 public class TrackpadView extends AbstractView {
 
+    // TODO all code below is garbage and needs to be completely rewritten
+
     private final ViewController viewController;
     private final USBController usbController;
     private final Rectangle trackpad;
@@ -86,7 +88,13 @@ public class TrackpadView extends AbstractView {
         if (touches.length > 0) {
             final int x = touches[0].getX();
             final int y = touches[0].getY();
-            if (!(trackpad.getBoundsInParent().contains(x, y))) {
+            if (viewController.isViewTransitioning()) {
+                return;
+            }
+            if (!trackpad.getBoundsInParent().contains(x, y)) {
+                viewController.getModelA().getHapticsBoardController()
+                        .scheduleLRAImpulse(Location.loc(x, y), 130.0, MAX_VALUE, 0, 30);
+                viewController.setActiveView(viewController.getKeyboardView());
                 return;
             }
 
@@ -114,8 +122,8 @@ public class TrackpadView extends AbstractView {
                         usbController.setNextMouseMovement((byte) 0, (byte) 0, (byte) -clamp(deltaY, -1, 1));
                     }
                 } else {
-                    usbController.setNextMouseMovement((byte) multipliedDeltaX, (byte) multipliedDeltaY,
-                            (byte) 0);
+                    usbController.setNextMouseMovement((byte) multipliedDeltaX,
+                            (byte) multipliedDeltaY, (byte) 0);
                 }
                 try {
                     usbController.flush(100, 10);
@@ -139,8 +147,8 @@ public class TrackpadView extends AbstractView {
 
                 final SampleResult sampleResult;
                 try {
-                    sampleResult =
-                            viewController.getModelA().getLoadSurfaceController().getPercentOffsetSampleFuture().get();
+                    sampleResult = viewController.getModelA().getLoadSurfaceController()
+                            .getPercentOffsetSampleFuture().get();
                 } catch (Exception exception) {
                     exception.printStackTrace();
                     return;

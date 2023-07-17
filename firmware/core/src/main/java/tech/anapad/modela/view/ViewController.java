@@ -208,7 +208,7 @@ public class ViewController {
         }
         viewTransitioning = true;
         if (activeView != null) {
-            final FadeTransition fadeOutTransition = new FadeTransition(millis(250), activeView.getNodeGroup());
+            final FadeTransition fadeOutTransition = new FadeTransition(millis(100), activeView.getNodeGroup());
             fadeOutTransition.setFromValue(activeView.getNodeGroup().getOpacity());
             fadeOutTransition.setToValue(0.0);
             fadeOutTransition.setOnFinished(event -> handleFadeInActiveView(newView));
@@ -270,8 +270,7 @@ public class ViewController {
                     activeButtons.add((Button) node);
                 }
             }
-        }
-        if (activeView != null) {
+        } else if (activeView != null) {
             for (Node node : activeView.getNodeGroup().getChildren()) {
                 if (node instanceof Button) {
                     activeButtons.add((Button) node);
@@ -352,16 +351,20 @@ public class ViewController {
         }
 
         // Pass non-button, raw touches to required views/components
-        if (multipliedTouches.size() > 0 && multipliedTouches.size() == buttonTouches.size()) {
-            return;
-        }
-        multipliedTouches.removeAll(buttonTouches);
-        if (activeView == touchesView) {
-            touchesView.processRawTouches(multipliedTouches);
-        } else if (activeView == forceHapticsView) {
-            forceHapticsView.processRawTouches(multipliedTouches);
-        } else if (activeView == trackpadView) {
-            trackpadView.processRawTouches(multipliedTouches);
+        if (!menuView.isShowing()) {
+            if (multipliedTouches.size() > 0 && multipliedTouches.size() == buttonTouches.size()) {
+                return;
+            }
+            multipliedTouches.removeAll(buttonTouches);
+            if (activeView == touchesView) {
+                touchesView.processRawTouches(multipliedTouches);
+            } else if (activeView == forceHapticsView) {
+                forceHapticsView.processRawTouches(multipliedTouches);
+            } else if (activeView == keyboardView) {
+                keyboardView.processRawTouches(multipliedTouches);
+            } else if (activeView == trackpadView) {
+                trackpadView.processRawTouches(multipliedTouches);
+            }
         }
     }
 
